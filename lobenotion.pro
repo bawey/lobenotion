@@ -16,12 +16,16 @@ SOURCES +=  main.cpp\
             mainwindow.cpp \
             qemokitd.cpp \
     eegframe.cpp \
-    eegmaintenanceframe.cpp
+    eegmaintenanceframe.cpp \
+    emokiteegprovider.cpp \
+    eegdataprovider.cpp
 
 HEADERS  += mainwindow.h \
     qemokitd.h \
     eegframe.h \
-    eegmaintenanceframe.h
+    eegmaintenanceframe.h \
+    emokiteegprovider.h \
+    eegdataprovider.h
 
 FORMS    += mainwindow.ui
 
