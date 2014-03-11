@@ -11,10 +11,10 @@ EmokitEegProvider::EmokitEegProvider()
 }
 
 
-EegFrame const& EmokitEegProvider::eegFrame() const{
-    return NULL;
+const EegFrame& EmokitEegProvider::eegFrame() const{
+    return EegFrame();
 }
 
-EegMaintenanceFrame const& EmokitEegProvider::eegMaintenanceFrame(){
-    return NULL;
+const EegMaintenanceFrame& EmokitEegProvider::eegMaintenanceFrame() const{
+    return EegMaintenanceFrame();
 }

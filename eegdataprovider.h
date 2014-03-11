@@ -6,14 +6,14 @@
 #include <QThread>
 #include <QObject>
 
-class EegDataProvider : public QObject, public QThread
+class EegDataProvider : public QThread
 {
     Q_OBJECT
 public:
     EegDataProvider();
-signals:
-    virtual EegFrame const& eegFrame() const;
-    virtual EegMaintenanceFrame const& eegMaintenanceFrame() const;
+
+    virtual const EegFrame& eegFrame() const = 0;
+    virtual const EegMaintenanceFrame& eegMaintenanceFrame() = 0;
 };
 
 #endif // EEGDATAPROVIDER_H

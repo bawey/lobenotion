@@ -8,9 +8,8 @@ class EmokitEegProvider : public EegDataProvider
 public:
     EmokitEegProvider();
 signals:
-    EegFrame const& eegMaintenanceFrame() const;
-    EegMaintenanceFrame const& eegFrame() const;
-
+    const EegMaintenanceFrame& eegMaintenanceFrame() const;
+    const EegFrame& eegFrame() const;
 };
 
 #endif // EMOKITEEGPROVIDER_H
