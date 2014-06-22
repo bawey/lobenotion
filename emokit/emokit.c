@@ -178,7 +178,7 @@ int emokit_close(struct emokit_device* s)
 
 int emokit_read_data(struct emokit_device* s)
 {
-	return hid_read(s->_dev, s->raw_frame, 32);
+    return hid_read(s->_dev, s->raw_frame, 32);
 }
 
 EMOKIT_DECLSPEC

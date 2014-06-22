@@ -1,10 +1,18 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-class Timer
+#include <QTime>
+
+class Timer : private QTime
 {
-public:
+private:
+    static Timer* instance;
     Timer();
+public:
+    static void start();
+    static int getTime();
+
+
 };
 
 #endif // TIMER_H

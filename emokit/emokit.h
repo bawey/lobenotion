@@ -29,14 +29,14 @@
 #endif
 
 /// Vendor ID for all emotiv devices
-const static uint32_t EMOKIT_VID = 0x21a1;
+static  const uint32_t EMOKIT_VID = 0x21a1;
 /// Product ID for all emotiv devices
-const static uint32_t EMOKIT_PID = 0x0001;
+static const uint32_t EMOKIT_PID = 0x0001;
 
 /// Out endpoint for all emotiv devices
-const static uint32_t EMOKIT_OUT_ENDPT = 0x02;
+static const uint32_t EMOKIT_OUT_ENDPT = 0x02;
 /// In endpoint for all emotiv devices
-const static uint32_t EMOKIT_IN_ENDPT  = 0x82;
+static const uint32_t EMOKIT_IN_ENDPT  = 0x82;
 
 struct emokit_contact_quality {//values > 4000 are good
 	short F3, FC6, P7, T8, F7, F8, T7, P8, AF4, F4, AF3, O2, O1, FC5;

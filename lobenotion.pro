@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,18 +16,30 @@ SOURCES +=  main.cpp\
             mainwindow.cpp \
             qemokitd.cpp \
     eegframe.cpp \
-    eegmaintenanceframe.cpp \
-    emokiteegprovider.cpp \
-    eegdataprovider.cpp \
-    settings.cpp
+    settings.cpp \
+    metaframe.cpp \
+    eegdaq.cpp \
+    eegprocessor.cpp \
+    timer.cpp \
+    epocdaq.cpp \
+    fakedaq.cpp \
+    eegvisualizer.cpp \
+    qcustomplot/qcustomplot.cpp \
+    metaprocessor.cpp
 
 HEADERS  += mainwindow.h \
     qemokitd.h \
     eegframe.h \
-    eegmaintenanceframe.h \
-    emokiteegprovider.h \
-    eegdataprovider.h \
-    settings.h
+    settings.h \
+    metaframe.h \
+    eegdaq.h \
+    eegprocessor.h \
+    timer.h \
+    epocdaq.h \
+    fakedaq.h \
+    eegvisualizer.h \
+    qcustomplot/qcustomplot.h \
+    metaprocessor.h
 
 FORMS    += mainwindow.ui
 
@@ -43,3 +55,5 @@ LIBS += -lhidapi-hidraw
 LIBS += -lhidapi-libusb
 LIBS += -lusb-1.0
 LIBS += -lmcrypt
+
+QMAKE_CXXFLAGS += -std=c++11
