@@ -25,7 +25,9 @@ SOURCES +=  main.cpp\
     fakedaq.cpp \
     eegvisualizer.cpp \
     qcustomplot/qcustomplot.cpp \
-    metaprocessor.cpp
+    metaprocessor.cpp \
+    stimulant.cpp \
+    spellerwidget.cpp
 
 HEADERS  += mainwindow.h \
     qemokitd.h \
@@ -39,7 +41,9 @@ HEADERS  += mainwindow.h \
     fakedaq.h \
     eegvisualizer.h \
     qcustomplot/qcustomplot.h \
-    metaprocessor.h
+    metaprocessor.h \
+    stimulant.h \
+    spellerwidget.h
 
 FORMS    += mainwindow.ui
 

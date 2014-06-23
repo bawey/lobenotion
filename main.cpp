@@ -11,6 +11,7 @@
 #include <eegprocessor.h>
 #include <eegvisualizer.h>
 #include <metaprocessor.h>
+#include <stimulant.h>
 
 /**
 needs to start modules:
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
         daq=new EpocDaq();
     }
 
-    daq->start();
+    //daq->start();
     qDebug("DAQ started");
 
     QList<EegProcessor*> processors;
@@ -73,6 +74,10 @@ int main(int argc, char *argv[])
                                  metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
     metaProcessor->start();
 
+    /** create a temporary and dummy stimulant **/
+
+    Stimulant* st = new Stimulant();
+    st->start();
 
     return a.exec();
 }
