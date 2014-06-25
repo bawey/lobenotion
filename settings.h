@@ -16,6 +16,14 @@ public:
     static bool isEegVisualizerEnabled();
     static void setEegVisualizerEnabled(bool isIt);
 
+    static bool isTrainingMode();
+    static void setTrainingMode(boolean trueFalse);
+
+    static int getSpellerHighlightTicks();
+    static int getSpellerIntervalTicks();
+    static int getSpellerMessageTicks();
+    static int getSpellerHighlightIterations();
+
 private:
     static Settings* getInstance();
     static Settings* instance;

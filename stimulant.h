@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QWidget>
 #include <QLabel>
+#include <QString>
 #include <spellerwidget.h>
 
 class Stimulant : public QThread
@@ -13,16 +14,19 @@ private:
     static constexpr int HIGHLIGHT_DURATION=1000;
     static constexpr int INTERVAL_DURATION=500;
 
+    bool trainingMode;
+
     SpellerWidget speller;
     void run();
 
 public:
-    explicit Stimulant();
+    explicit Stimulant(bool trainingMode=true);
 
 signals:
-    void orderHighlightRow(int r);
-    void orderHighlightColumn(int r);
-    void orderUnhighlight();
+    void spellerHighlightRow(int r);
+    void spellerHighlightColumn(int r);
+    void spellerUnhighlight();
+    void spellerRandomHint();
 
 
 };
