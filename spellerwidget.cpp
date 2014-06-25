@@ -6,6 +6,7 @@
 #include <QSizePolicy>
 #include <QVBoxLayout>
 #include <QStackedLayout>
+#include <timer.h>
 
 QString SpellerWidget::styleRegular=QString("background-color : black; color: white;");
 QString SpellerWidget::styleHighlight=QString("background-color : green; color: white;");
@@ -71,8 +72,7 @@ void SpellerWidget::resizeEvent(QResizeEvent* event){
 
     this->layout()->setContentsMargins(0,0,0,0);
     event->accept();
-
-    qDebug()<<"dims: "<<QString::number(width)<<", "<<QString::number(height);
+    //qDebug()<<"dims: "<<QString::number(width)<<", "<<QString::number(height);
 }
 
 
@@ -83,16 +83,19 @@ void SpellerWidget::highlightRow(int number){
         tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(styleHighlight);
     }
     highlighted=1+rowNo;
+    emit highlight(highlighted);
 }
 
 
 void SpellerWidget::highlightColumn(int number){
+    qDebug()<<"highlite col: "<<number%MATRIX_DIM<<"at: "<<Timer::getTime();
     stackedLayout->setCurrentIndex(1);
     int colNo = number%MATRIX_DIM;
     for(int i=0; i<MATRIX_DIM; ++i){
         tiles[i*MATRIX_DIM+colNo]->setStyleSheet(styleHighlight);
     }
     highlighted=-1*colNo-1;
+    emit highlight(highlighted);
 }
 
 
@@ -135,14 +138,52 @@ void SpellerWidget::spellerMessage(QString str){
 }
 
 void SpellerWidget::randomHint(){
-    QString content = tiles[qrand()%(MATRIX_DIM*MATRIX_DIM)]->text();
+    int index = qrand()%(MATRIX_DIM*MATRIX_DIM);
+    QString content = tiles[index]->text();
     stackedLayout->setCurrentIndex(0);
     message->setText(
         QString("count highlights of <font style='bold' color='green'>")+content
                 +QString("</font>"));
+    emit hint(index/MATRIX_DIM, index%MATRIX_DIM);
 }
 
-void SpellerWidget::eegFrameNotification(){
-    static int frameCount;
+/**
+ * @brief SpellerWidget::eegFrameNotification is synchronized with DAQ to display particular stimuli
+ */
+void SpellerWidget::eegFrameNotification(){ //training cycle: [indication->interval->(highlight->interval)]
+    static int frameCount=0;
+    static bool column = false;
+    static long lastHighlightTime=0;
 
+    int exposureFrames=60;
+    int intervalFrames=100;
+
+    int hintFrames=250;
+    int epochPeriods=84;
+
+    int epochFrames=hintFrames+intervalFrames+epochPeriods*(exposureFrames+intervalFrames);
+    frameCount=frameCount%epochFrames;
+    if(frameCount==0){
+        randomHint();
+    }else if(frameCount==hintFrames){
+        unhighlight();
+    }else if(frameCount>=hintFrames+3*intervalFrames){
+        int mod = (frameCount-3*intervalFrames-hintFrames)%(exposureFrames+intervalFrames);
+        if(mod==0){
+            long time = Timer::getTime();
+            if(lastHighlightTime!=0)
+                //qDebug()<<"highlightTime: "<<time-lastHighlightTime;
+            lastHighlightTime=time;
+
+            if(column){
+                highlightColumn(qrand());
+            }else{
+                highlightRow(qrand());
+            }
+            column=!column;
+        }else if(mod==exposureFrames){
+            unhighlight();
+        }
+    }
+    ++frameCount;
 }

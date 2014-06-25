@@ -1,7 +1,7 @@
 #ifndef EEGFRAME_H
 #define EEGFRAME_H
 #include <iostream>
-
+#include <QTextStream>
 
 class EegFrame
 {
@@ -16,6 +16,7 @@ public:
     const int F3, FC6, P7, T8, F7, F8, T7, P8, AF4, F4, AF3, O2, O1, FC5; //raw data values
 
     friend std::ostream& operator<<(std::ostream& out, const EegFrame& frame);
+    friend QTextStream& operator<<(QTextStream& out, const EegFrame& frame);
 
     int getValue(int i){
         switch (i){

@@ -52,7 +52,7 @@ void MetaProcessor::run(){
         /** consume **/
         QSharedPointer<MetaFrame> frame = metaBuffer[nextToRead];
         processMetaFrame(frame);
-        std::cout<<"Buffer usage: "<<metaBufferedCount<<std::endl;
+        //std::cout<<"Buffer usage: "<<metaBufferedCount<<std::endl;
         nextToRead = (nextToRead+1)%META_BUFFER_LENGTH;
 
         lock.lock();

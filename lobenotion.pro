@@ -27,7 +27,9 @@ SOURCES +=  main.cpp\
     qcustomplot/qcustomplot.cpp \
     metaprocessor.cpp \
     stimulant.cpp \
-    spellerwidget.cpp
+    spellerwidget.cpp \
+    eegdumper.cpp \
+    spellerdumper.cpp
 
 HEADERS  += mainwindow.h \
     qemokitd.h \
@@ -43,7 +45,9 @@ HEADERS  += mainwindow.h \
     qcustomplot/qcustomplot.h \
     metaprocessor.h \
     stimulant.h \
-    spellerwidget.h
+    spellerwidget.h \
+    eegdumper.h \
+    spellerdumper.h
 
 FORMS    += mainwindow.ui
 

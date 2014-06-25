@@ -12,6 +12,8 @@
 #include <eegvisualizer.h>
 #include <metaprocessor.h>
 #include <stimulant.h>
+#include <eegdumper.h>
+#include <spellerdumper.h>
 
 /**
 needs to start modules:
@@ -49,12 +51,15 @@ int main(int argc, char *argv[])
         daq=new EpocDaq();
     }
 
-    //daq->start();
+    daq->start();
     qDebug("DAQ started");
 
     QList<EegProcessor*> processors;
     if(Settings::isEegVisualizerEnabled()){
         processors.push_back(new EegVisualizer());
+    }
+    if(true/**sorry, not now**/){
+        processors.push_back(new EegDumper());
     }
 
     /** register signal datatypes and connect daq to processors **/
@@ -64,7 +69,6 @@ int main(int argc, char *argv[])
         QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)),
                                      processor, SLOT(eegFrame(QSharedPointer<EegFrame>)));
         processor->start();
-
     }
 
     /** start MetaProcessor **/
@@ -75,9 +79,15 @@ int main(int argc, char *argv[])
     metaProcessor->start();
 
     /** create a temporary and dummy stimulant **/
+    SpellerWidget speller;
+    speller.show();
+    QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), &speller, SLOT(eegFrameNotification()));
 
-    Stimulant* st = new Stimulant();
-    st->start();
+
+    /** and a no less dummy speller dumper **/
+    SpellerDumper* spellDumper = new SpellerDumper();
+    QObject::connect(&speller, SIGNAL(hint(int,int)), spellDumper, SLOT(spellerHint(int,int)));
+    QObject::connect(&speller, SIGNAL(highlight(int)), spellDumper, SLOT(spellerHighlight(int)));
 
     return a.exec();
 }

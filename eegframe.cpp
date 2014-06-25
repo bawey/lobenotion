@@ -15,4 +15,11 @@ std::ostream& operator<<(std::ostream& out, const EegFrame& frame){
         <<", P7:"   <<frame.P7<<", P8:"     <<frame.P8<<", T7:" <<frame.T7<<", T8:" <<frame.T8;
 }
 
+
 const std::string EegFrame::contacts[14] = {"AF3", "AF4", "F3", "F4", "F7", "F8", "FC5", "FC6", "T7", "T8", "P7", "P8", "O1", "O2"};
+
+QTextStream& operator<<(QTextStream& out, const EegFrame& frame){
+    out<<QString("%1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15\n").arg(frame.AF3).arg(frame.AF4).arg(frame.F3)
+         .arg(frame.F4).arg(frame.F7).arg(frame.F8).arg(frame.FC5).arg(frame.FC6).arg(frame.T7).arg(frame.T8)
+         .arg(frame.P7).arg(frame.P8).arg(frame.O1).arg(frame.O2);
+}

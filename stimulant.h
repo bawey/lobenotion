@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QString>
 #include <spellerwidget.h>
+#include <eegdaq.h>
 
 class Stimulant : public QThread
 {
@@ -14,13 +15,13 @@ private:
     static constexpr int HIGHLIGHT_DURATION=1000;
     static constexpr int INTERVAL_DURATION=500;
 
+    EegDaq* daq;
     bool trainingMode;
 
-    SpellerWidget speller;
     void run();
 
 public:
-    explicit Stimulant(bool trainingMode=true);
+    explicit Stimulant(EegDaq* daq, bool trainingMode=true);
 
 signals:
     void spellerHighlightRow(int r);

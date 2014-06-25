@@ -17,12 +17,12 @@ public:
     static void setEegVisualizerEnabled(bool isIt);
 
     static bool isTrainingMode();
-    static void setTrainingMode(boolean trueFalse);
+    static void setTrainingMode(bool trueFalse);
 
-    static int getSpellerHighlightTicks();
-    static int getSpellerIntervalTicks();
-    static int getSpellerMessageTicks();
-    static int getSpellerHighlightIterations();
+    static int getSpellerHighlightFrames();
+    static int getSpellerIntervalFrames();
+    static int getSpellerHintFrames();
+    static int getSpellerEpochPeriods();
 
 private:
     static Settings* getInstance();
