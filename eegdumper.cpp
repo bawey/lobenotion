@@ -9,6 +9,7 @@ EegDumper::EegDumper() :
 
 void EegDumper::eegFrame(QSharedPointer<EegFrame> eegFrame){
    out<<*eegFrame;
+   out.flush();
 }
 
 EegDumper::~EegDumper(){
