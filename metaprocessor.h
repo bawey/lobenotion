@@ -14,6 +14,9 @@ class MetaProcessor : public QThread
     Q_OBJECT
 public:
     explicit MetaProcessor();
+    QWidget* const getWidget() const{
+        return widget;
+    }
 
 private:
     constexpr static int META_BUFFER_LENGTH=10;
@@ -23,21 +26,28 @@ private:
     QWaitCondition bufferNotEmpty;
     QWaitCondition bufferNotFull;
 
-    QWidget widget;
+    QWidget* widget;
     QLabel* qualityLabels[EegFrame::CONTACTS_NO];
     QLabel signalQualityLabel;
     QLabel batteryLevelWidget;
     QLabel metaBufferWidget;
 
+    bool graphicOutputEnabled=true;
     bool signalsFineSoFar;
 
     void run();
     void processMetaFrame(QSharedPointer<MetaFrame>);
 
+    static constexpr int processEvery=32;
+
 signals:
     void signalFine(bool truefalse);
 public slots:
     virtual void metaFrame(QSharedPointer<MetaFrame> eegFrame);
+    void enableGraphicOutput(bool yesno=true);
+    void disableGraphicOutput(){
+        graphicOutputEnabled=false;
+    }
 };
 
 #endif // METAPROCESSOR_H

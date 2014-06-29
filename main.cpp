@@ -29,14 +29,7 @@ int main(int argc, char *argv[])
     qsrand((uint)QTime::currentTime().msec());
     QApplication a(argc, argv);
 
-    //QEmokitD emokitd;
-
-    //MainWindow w(&emokitd);
-    //w.show();
-
-   // emokitd.start();
-
-    /** start the timer **/
+        /** start the timer **/
 
     Timer::start();
     qDebug("Timer started");
@@ -53,41 +46,21 @@ int main(int argc, char *argv[])
 
     daq->start();
     qDebug("DAQ started");
+    /** DAQ starting and stopping  needs to be moved into main window**/
 
-    QList<EegProcessor*> processors;
-    if(Settings::isEegVisualizerEnabled()){
-        processors.push_back(new EegVisualizer());
-    }
-    if(true/**sorry, not now**/){
-        processors.push_back(new EegDumper());
-    }
 
-    /** register signal datatypes and connect daq to processors **/
-    qRegisterMetaType<QSharedPointer<EegFrame>>("QSharedPointer<EegFrame>");
 
-    foreach(EegProcessor* processor, processors){
-        QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)),
-                                     processor, SLOT(eegFrame(QSharedPointer<EegFrame>)));
-        processor->start();
-    }
-
-    /** start MetaProcessor **/
-    qRegisterMetaType<QSharedPointer<MetaFrame>>("QSharedPointer<MetaFrame>");
     MetaProcessor* metaProcessor = new MetaProcessor();
-    QObject::connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)),
-                                 metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
-    metaProcessor->start();
 
     /** create a temporary and dummy stimulant **/
-    SpellerWidget speller;
-    speller.show();
-    QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), &speller, SLOT(eegFrameNotification()));
-
+    SpellerWidget* speller = new SpellerWidget();
 
     /** and a no less dummy speller dumper **/
     SpellerDumper* spellDumper = new SpellerDumper();
-    QObject::connect(&speller, SIGNAL(hint(int,int)), spellDumper, SLOT(spellerHint(int,int)));
-    QObject::connect(&speller, SIGNAL(highlight(int)), spellDumper, SLOT(spellerHighlight(int)));
+
+
+    MainWindow* mainWindow = new MainWindow(NULL, metaProcessor, spellDumper, NULL, speller, daq);
+    mainWindow->show();
 
     return a.exec();
 }

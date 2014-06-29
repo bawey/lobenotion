@@ -51,8 +51,6 @@ SpellerWidget::SpellerWidget()
     stackedLayout->addWidget(keyboard);
     stackedLayout->setCurrentIndex(1);
     this->setLayout(stackedLayout);
-    this->setWindowTitle("P300 Speller");
-    this->show();
     keyboard->setFixedSize(keyboard->size());
 }
 
@@ -76,26 +74,26 @@ void SpellerWidget::resizeEvent(QResizeEvent* event){
 }
 
 
-void SpellerWidget::highlightRow(int number){
+void SpellerWidget::highlightRow(int rowNo){
     stackedLayout->setCurrentIndex(1);
-    int rowNo = number%MATRIX_DIM;
     for(int i=0; i<MATRIX_DIM; ++i){
         tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(styleHighlight);
     }
+    long time = Timer::getTime();
     highlighted=1+rowNo;
-    emit highlight(highlighted);
+    emit highlight(highlighted, time);
 }
 
 
-void SpellerWidget::highlightColumn(int number){
-    qDebug()<<"highlite col: "<<number%MATRIX_DIM<<"at: "<<Timer::getTime();
+void SpellerWidget::highlightColumn(int colNo){
+//    qDebug()<<"highlite col: "<<colNo<<"at: "<<Timer::getTime();
     stackedLayout->setCurrentIndex(1);
-    int colNo = number%MATRIX_DIM;
     for(int i=0; i<MATRIX_DIM; ++i){
         tiles[i*MATRIX_DIM+colNo]->setStyleSheet(styleHighlight);
     }
     highlighted=-1*colNo-1;
-    emit highlight(highlighted);
+    long time = Timer::getTime();
+    emit highlight(highlighted, time);
 }
 
 
@@ -138,7 +136,7 @@ void SpellerWidget::spellerMessage(QString str){
 }
 
 void SpellerWidget::randomHint(){
-    int index = qrand()%(MATRIX_DIM*MATRIX_DIM);
+    int index = qrand()/(double)RAND_MAX*(MATRIX_DIM*MATRIX_DIM);
     QString content = tiles[index]->text();
     stackedLayout->setCurrentIndex(0);
     message->setText(
@@ -150,18 +148,7 @@ void SpellerWidget::randomHint(){
 /**
  * @brief SpellerWidget::eegFrameNotification is synchronized with DAQ to display particular stimuli
  */
-void SpellerWidget::eegFrameNotification(){ //training cycle: [indication->interval->(highlight->interval)]
-    static int frameCount=0;
-    static bool column = false;
-    static long lastHighlightTime=0;
-
-    int exposureFrames=60;
-    int intervalFrames=100;
-
-    int hintFrames=250;
-    int epochPeriods=84;
-
-    int epochFrames=hintFrames+intervalFrames+epochPeriods*(exposureFrames+intervalFrames);
+void SpellerWidget::eegFrameNotification(){ //training cycle: [hint->interval->(highlight->interval)]
     frameCount=frameCount%epochFrames;
     if(frameCount==0){
         randomHint();
@@ -170,20 +157,22 @@ void SpellerWidget::eegFrameNotification(){ //training cycle: [indication->inter
     }else if(frameCount>=hintFrames+3*intervalFrames){
         int mod = (frameCount-3*intervalFrames-hintFrames)%(exposureFrames+intervalFrames);
         if(mod==0){
-            long time = Timer::getTime();
-            if(lastHighlightTime!=0)
-                //qDebug()<<"highlightTime: "<<time-lastHighlightTime;
-            lastHighlightTime=time;
-
-            if(column){
-                highlightColumn(qrand());
+            int randIndex = (qrand()/(double)RAND_MAX*MATRIX_DIM);
+//            qDebug()<<"Rand index: "<<randIndex;
+            if(nextHighlightColumn){
+                highlightColumn(randIndex);
             }else{
-                highlightRow(qrand());
+                highlightRow(randIndex);
             }
-            column=!column;
+            nextHighlightColumn=!nextHighlightColumn;
         }else if(mod==exposureFrames){
             unhighlight();
         }
     }
     ++frameCount;
+}
+
+void SpellerWidget::trainingResetFramesCount(){
+    frameCount=0;
+    nextHighlightColumn=0;
 }

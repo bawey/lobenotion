@@ -13,7 +13,6 @@ TEMPLATE = app
 
 
 SOURCES +=  main.cpp\
-            mainwindow.cpp \
             qemokitd.cpp \
     eegframe.cpp \
     settings.cpp \
@@ -29,7 +28,8 @@ SOURCES +=  main.cpp\
     stimulant.cpp \
     spellerwidget.cpp \
     eegdumper.cpp \
-    spellerdumper.cpp
+    spellerdumper.cpp \
+    mainwindow.cpp
 
 HEADERS  += mainwindow.h \
     qemokitd.h \
@@ -49,7 +49,7 @@ HEADERS  += mainwindow.h \
     eegdumper.h \
     spellerdumper.h
 
-FORMS    += mainwindow.ui
+FORMS    +=
 
 #CONNECT TO EMOKIT STUFF
 SOURCES += ./emokit/emokit.c

@@ -11,8 +11,8 @@ class EegDumper : public EegProcessor
 {
     Q_OBJECT
 private:
-    QFile file;
-    QTextStream out;
+    QFile* file;
+    QTextStream* out;
 
 public:
     explicit EegDumper();
@@ -23,6 +23,8 @@ signals:
 
 public slots:
     void eegFrame(QSharedPointer<EegFrame> eegFrame);
+    void closeDumpingSession();
+    void startDumpingSession();
 };
 
 #endif // EEGDUMPER_H

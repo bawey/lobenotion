@@ -18,6 +18,9 @@ class EegVisualizer : public EegProcessor
 
  public:
       EegVisualizer();
+      QWidget* const getWidget() const{
+        return widget;
+      }
 
  private:
       constexpr static int EEG_BUFFER_LENGTH=10;
@@ -29,7 +32,7 @@ class EegVisualizer : public EegProcessor
 
       int eegBufferedCount = 0;
 
-      QWidget window;
+      QWidget* widget;
       QCPGraph* graphs[EegFrame::CONTACTS_NO];
 
       void run();

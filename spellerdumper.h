@@ -9,8 +9,8 @@ class SpellerDumper : public QObject
     Q_OBJECT
 
 private:
-    QFile file;
-    QTextStream out;
+    QFile* file;
+    QTextStream* out;
     int nowRow;
     int nowColumn;
 
@@ -19,7 +19,10 @@ public:
 
 public slots:
     void spellerHint(int row, int column);
-    void spellerHighlight(int i);
+    void spellerHighlight(int i, long time);
+
+    void closeDumpingSession();
+    void startDumpingSession();
 };
 
 #endif // SPELLERDUMPER_H

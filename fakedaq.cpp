@@ -29,7 +29,7 @@ void FakeDaq::run(){
         time=time/10;
 
 
-        if(qrand()%1000>950){
+        if(qrand()%1000>0){
             QSharedPointer<MetaFrame> metaFrame = QSharedPointer<MetaFrame>(new MetaFrame(
                                                                                 (unsigned char)0,(char)0,(char)0,(unsigned char)(100.0 - time),
                                                                                 qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),

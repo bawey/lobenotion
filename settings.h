@@ -2,14 +2,12 @@
 #define SETTINGS_H
 
 #include <QSettings>
+#include <QString>
 
 class Settings : public QSettings
 {
     Q_OBJECT
 public:
-    static QString OPT_DUMMY_DAQ;
-    static QString OPT_EEG_VISUALIZER;
-
     static bool isDummyModeEnabled();
     static void setDummyModeEnabled(bool isIt);
 
@@ -24,7 +22,15 @@ public:
     static int getSpellerHintFrames();
     static int getSpellerEpochPeriods();
 
+    static QString getEegDumpPath();
+    static QString getMetaDumpPath();
+
 private:
+    static QString OPT_DUMMY_DAQ;
+    static QString OPT_EEG_VISUALIZER;
+    static QString OPT_EEG_DUMP_PATH;
+    static QString OPT_META_DUMP_PATH;
+
     static Settings* getInstance();
     static Settings* instance;
     explicit Settings();

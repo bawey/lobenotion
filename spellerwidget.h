@@ -26,6 +26,19 @@ private:
     QStackedLayout* stackedLayout;
     void resizeEvent(QResizeEvent* event);
 
+    void highlightRow(int number);
+    void highlightColumn(int number);
+
+    int frameCount = 0;
+    bool nextHighlightColumn = false;
+
+    static constexpr int exposureFrames=60;
+    static constexpr int intervalFrames=100;
+
+    static constexpr int hintFrames=250;
+    static constexpr int epochPeriods=42;
+
+    static constexpr int epochFrames=hintFrames+intervalFrames+epochPeriods*(exposureFrames+intervalFrames);
 
 public:
     SpellerWidget();
@@ -37,14 +50,15 @@ signals:
     /**
      * @param i -7 through -1 for columns 6 through 0, 1 through 7 for rows 0 through 6
      */
-    void highlight(int i);
+    void highlight(int i, long time);
+    void spellerLatency(unsigned short d);
 
+public slots:
+    void trainingResetFramesCount();
 
 private slots:
     void displayInstruction(QString message);
     void highlightTile(int number);
-    void highlightRow(int number);
-    void highlightColumn(int number);
     void unhighlight();
     void spellerMessage(QString str);
     void randomHint();

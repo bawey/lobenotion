@@ -5,6 +5,8 @@
 
 QString Settings::OPT_DUMMY_DAQ="dummyDaq";
 QString Settings::OPT_EEG_VISUALIZER="eegVisualizer";
+QString Settings::OPT_EEG_DUMP_PATH="eegDumpPath";
+QString Settings::OPT_META_DUMP_PATH="metaDumpPath";
 
 
 Settings* Settings::instance;
@@ -42,4 +44,12 @@ bool Settings::isEegVisualizerEnabled(){
 
 void Settings::setEegVisualizerEnabled(bool isIt){
     getInstance()->setValue(Settings::OPT_EEG_VISUALIZER, isIt);
+}
+
+QString Settings::getEegDumpPath(){
+    return getInstance()->value(Settings::OPT_EEG_DUMP_PATH).toString();
+}
+
+QString Settings::getMetaDumpPath(){
+    return getInstance()->value(Settings::OPT_META_DUMP_PATH).toString();
 }

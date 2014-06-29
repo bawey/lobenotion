@@ -13,9 +13,8 @@
 
 EegVisualizer::EegVisualizer()
 {
-    window.resize(640, 480);
-    window.show();
-    window.setWindowTitle("PlotSS!");
+    widget = new QWidget();
+    widget->resize(640, 480);
 
     QVBoxLayout* column = new QVBoxLayout();
 
@@ -37,10 +36,12 @@ EegVisualizer::EegVisualizer()
         column->addLayout(row);
     }
 
-    window.setLayout(column);
+    widget->setLayout(column);
 }
 
 void EegVisualizer::processEegFrame(QSharedPointer<EegFrame> framePtr){
+    //instead of buffering
+
     static QList<double> x[EegFrame::CONTACTS_NO];
     static QList<double> y[EegFrame::CONTACTS_NO];
     static unsigned short counter = 0;
@@ -104,6 +105,8 @@ void EegVisualizer::run(){
 }
 
 void EegVisualizer::eegFrame(QSharedPointer<EegFrame> eegFrame){
+    processEegFrame(eegFrame);
+    /** Buffering disabled
     static int nextToWrite=0;
 //    qDebug()<<"producer delivers a frame - will acquire lock";
     lock.lock();
@@ -117,7 +120,7 @@ void EegVisualizer::eegFrame(QSharedPointer<EegFrame> eegFrame){
     //}
 //    qDebug()<<"Producer released lock";
 
-    /** produce **/
+    // produce
     eegBuffer[nextToWrite]=eegFrame;
     nextToWrite=(nextToWrite+1)%EEG_BUFFER_LENGTH;
 //    qDebug()<<"producer put sth in buffer";
@@ -131,4 +134,5 @@ void EegVisualizer::eegFrame(QSharedPointer<EegFrame> eegFrame){
     }
     lock.unlock();
 //    qDebug()<<"consumer released the lock";
+    **/
 }
