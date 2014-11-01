@@ -12,6 +12,7 @@
 #include <QWidget>
 #include <qcustomplot/qcustomplot.h>
 
+
 class EegVisualizer : public EegProcessor
 {
  Q_OBJECT

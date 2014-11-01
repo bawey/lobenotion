@@ -4,6 +4,7 @@
 
 
 QString Settings::OPT_DUMMY_DAQ="dummyDaq";
+QString Settings::OPT_DUMMY_DAQ_NOISY="dummyDaqNoisy";
 QString Settings::OPT_EEG_VISUALIZER="eegVisualizer";
 QString Settings::OPT_EEG_DUMP_PATH="eegDumpPath";
 QString Settings::OPT_META_DUMP_PATH="metaDumpPath";
@@ -30,6 +31,11 @@ Settings* Settings::getInstance(){
 
 bool Settings::isDummyModeEnabled(){
     QString reply = getInstance()->value(Settings::OPT_DUMMY_DAQ, QString("true")).toString();
+    return reply.compare("true", Qt::CaseInsensitive)==0;
+}
+
+bool Settings::isDummyDaqNoisy(){
+    QString reply = getInstance()->value(Settings::OPT_DUMMY_DAQ_NOISY, QString("true")).toString();
     return reply.compare("true", Qt::CaseInsensitive)==0;
 }
 

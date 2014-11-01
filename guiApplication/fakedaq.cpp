@@ -5,9 +5,18 @@
 #include <qmath.h>
 #include <timer.h>
 #include <iostream>
+#include <settings.h>
 
 FakeDaq::FakeDaq()
 {
+}
+
+float FakeDaq::generateContactQuality(float time){
+    if(Settings::isDummyDaqNoisy()){
+        return qSin(time*(1+(qrand()%100)/1000.0));
+    }else{
+        return 0.85f;
+    }
 }
 
 void FakeDaq::run(){
@@ -32,16 +41,20 @@ void FakeDaq::run(){
         if(qrand()%1000>0){
             QSharedPointer<MetaFrame> metaFrame = QSharedPointer<MetaFrame>(new MetaFrame(
                                                                                 (unsigned char)0,(char)0,(char)0,(unsigned char)(100.0 - time),
-                                                                                qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),
-                                                                                qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),
-                                                                                qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),
-                                                                                qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0)),
-                                                                                qSin(time*(1+(qrand()%100)/1000.0)),qSin(time*(1+(qrand()%100)/1000.0))));
-
-            //                (qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,
-            //                (qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,
-            //                (qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,(qrand()%1000)/1000.0,
-            //                (qrand()%1000)/1000.0,(qrand()%1000)/1000.0));
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time),
+                                                                                generateContactQuality(time)));
 
             this->metaFrame(metaFrame);
         }

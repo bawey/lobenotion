@@ -14,9 +14,6 @@ class SpellerWidget : public QWidget
 private:
     static constexpr int MATRIX_DIM=6;
 
-    static QString styleRegular;
-    static QString styleHighlight;
-
     //0 - nothing, 1,2,3 - rows 0,1,2, -1,-2.-3 columns 0,1,2
 
 
@@ -40,6 +37,10 @@ private:
 
     static constexpr int epochFrames=hintFrames+intervalFrames+epochPeriods*(exposureFrames+intervalFrames);
 
+    static QString getCellRegularStyle();
+    static QString getCellHighlightedStyle();
+
+
 public:
     SpellerWidget();
 
@@ -58,7 +59,7 @@ public slots:
 
 private slots:
     void displayInstruction(QString message);
-    void highlightTile(int number);
+    void highlightTile(int row, int column);
     void unhighlight();
     void spellerMessage(QString str);
     void randomHint();

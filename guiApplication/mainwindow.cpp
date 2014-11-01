@@ -52,6 +52,8 @@ MainWindow::MainWindow(EegVisualizer* visualizerObject,    MetaProcessor* metaPr
     this->setCentralWidget(new QWidget());
 
     stackLayout=new QStackedLayout();
+    this->centralWidget()->setLayout(stackLayout);
+
     dashboardLayout = new QHBoxLayout();
     dashboardLayout->addWidget(visualizer->getWidget());
     dashboardLayout->addWidget(metaProcessor->getWidget());
@@ -61,10 +63,11 @@ MainWindow::MainWindow(EegVisualizer* visualizerObject,    MetaProcessor* metaPr
 
     QWidget* spellerWrapperWidget = new QWidget();
     QHBoxLayout* spellerBox = new QHBoxLayout();
-    spellerBox->addStretch();
+    //without these stretches, the keyboard resizes nicely
+    //spellerBox->addStretch();
     spellerWrapperWidget->setLayout(spellerBox);
     spellerWrapperWidget->layout()->addWidget(spellerWidget);
-    spellerBox->addStretch();
+    //spellerBox->addStretch();
     QWidget* spellerButtonsWidget = new QWidget();
     spellerButtonsWidget->setLayout(new QVBoxLayout());
 
@@ -89,7 +92,7 @@ MainWindow::MainWindow(EegVisualizer* visualizerObject,    MetaProcessor* metaPr
     stackLayout->addWidget(new QLabel("5"));
 
 
-    this->centralWidget()->setLayout(stackLayout);
+
 
     stackLayout->setCurrentIndex(5);
 

@@ -8,20 +8,18 @@
 #include <QStackedLayout>
 #include <timer.h>
 
-QString SpellerWidget::styleRegular=QString("background-color : black; color: white;");
-QString SpellerWidget::styleHighlight=QString("background-color : green; color: white;");
-
 SpellerWidget::SpellerWidget()
 {
     highlighted=0;
     stackedLayout=new QStackedLayout();
     message=new QLabel("P300 speller");
     message->setFont(QFont("Arial", 40));
-    message->setStyleSheet(styleRegular);
+    message->setStyleSheet(SpellerWidget::getCellRegularStyle());
     message->setAlignment(Qt::AlignCenter|Qt::AlignHCenter);
     stackedLayout->addWidget(message);
 
     QWidget* keyboard = new QWidget();
+    keyboard->setStyleSheet("background-color: black;");
     QGridLayout* keyboardLayout = new QGridLayout();
     keyboardLayout->setHorizontalSpacing(0);
     keyboardLayout->setVerticalSpacing(0);
@@ -39,7 +37,7 @@ SpellerWidget::SpellerWidget()
             label->setMinimumHeight(120);
             label->setContentsMargins(0,0,0,0);
             label->setMinimumWidth(120);
-            label->setStyleSheet("background-color: black;  color: white;");
+            label->setStyleSheet(SpellerWidget::getCellRegularStyle());
             QFont f( "Arial", 20);
             label->setFont( f);
             keyboardLayout->addWidget(label, r, c, 1, 1, Qt::AlignCenter|Qt::AlignHCenter);
@@ -51,21 +49,25 @@ SpellerWidget::SpellerWidget()
     stackedLayout->addWidget(keyboard);
     stackedLayout->setCurrentIndex(1);
     this->setLayout(stackedLayout);
-    keyboard->setFixedSize(keyboard->size());
+    //can be enabled for DEBUG
+    //this->setStyleSheet("background-color: pink;");
+    //keyboard->setFixedSize(keyboard->size());
 }
 
 void SpellerWidget::resizeEvent(QResizeEvent* event){
      QWidget::resizeEvent(event);
     int height=event->size().height();
-    int width=event->size().width();
+//    int width=event->size().width();
 
     int h = (int)(height/MATRIX_DIM);
-    int w = (int)(width/MATRIX_DIM);
+//    int w = (int)(width/MATRIX_DIM);
+
+    QFont font = tiles[0]->font();
+//    font.setPixelSize(font.pixelSize()*hStretch);
+    font.setPixelSize(h*0.66);
+
     for(int i=0; i<MATRIX_DIM*MATRIX_DIM; ++i){
-//        tiles[i]->setMinimumWidth(w);
-//        tiles[i]->setMinimumHeight(h);
-//        tiles[i]->setMaximumWidth(w);
-//        tiles[i]->setMaximumHeight(h);
+          tiles[i]->setFont(font);
     }
 
     this->layout()->setContentsMargins(0,0,0,0);
@@ -77,7 +79,7 @@ void SpellerWidget::resizeEvent(QResizeEvent* event){
 void SpellerWidget::highlightRow(int rowNo){
     stackedLayout->setCurrentIndex(1);
     for(int i=0; i<MATRIX_DIM; ++i){
-        tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(styleHighlight);
+        tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(SpellerWidget::getCellHighlightedStyle());
     }
     long time = Timer::getTime();
     highlighted=1+rowNo;
@@ -89,7 +91,7 @@ void SpellerWidget::highlightColumn(int colNo){
 //    qDebug()<<"highlite col: "<<colNo<<"at: "<<Timer::getTime();
     stackedLayout->setCurrentIndex(1);
     for(int i=0; i<MATRIX_DIM; ++i){
-        tiles[i*MATRIX_DIM+colNo]->setStyleSheet(styleHighlight);
+        tiles[i*MATRIX_DIM+colNo]->setStyleSheet(SpellerWidget::getCellHighlightedStyle());
     }
     highlighted=-1*colNo-1;
     long time = Timer::getTime();
@@ -102,12 +104,12 @@ void SpellerWidget::unhighlight(){
     if(highlighted>0){
         int rowNo = highlighted-1;
         for(int i=0; i<MATRIX_DIM; ++i){
-            tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(styleRegular);
+            tiles[rowNo*MATRIX_DIM+i]->setStyleSheet(SpellerWidget::getCellRegularStyle());
         }
     }else if(highlighted<0){
         int colNo = -1*highlighted-1;
         for(int i=0; i<MATRIX_DIM; ++i){
-            tiles[i*MATRIX_DIM+colNo]->setStyleSheet(styleRegular);
+            tiles[i*MATRIX_DIM+colNo]->setStyleSheet(SpellerWidget::getCellRegularStyle());
         }
     }
     highlighted=0;
@@ -118,16 +120,12 @@ void SpellerWidget::displayInstruction(QString messageString){
     this->message->setText(messageString);
 }
 
-void SpellerWidget::highlightTile(int number){
-
-
-//    for(int i=0; i<MATRIX_DIM*MATRIX_DIM; ++i){
-//        if(i==0){
-
-//        }else{
-//            tiles[i]->setVisible(false);
-//        }
-//    }
+//assuming values 1-6 for clear communication between classes
+void SpellerWidget::highlightTile(int row, int column){
+    --row;
+    --column;
+    tiles[row*MATRIX_DIM+column]->setStyleSheet(SpellerWidget::getCellHighlightedStyle());
+    this->highlighted=row;
 }
 
 void SpellerWidget::spellerMessage(QString str){
@@ -135,14 +133,26 @@ void SpellerWidget::spellerMessage(QString str){
     message->setText(str);
 }
 
+/**
+ * Now it will only get a random number (this feature needs to be moved outside the widget!)
+ * @brief SpellerWidget::randomHint
+ */
 void SpellerWidget::randomHint(){
-    int index = qrand()/(double)RAND_MAX*(MATRIX_DIM*MATRIX_DIM);
-    QString content = tiles[index]->text();
-    stackedLayout->setCurrentIndex(0);
-    message->setText(
-        QString("count highlights of <font style='bold' color='green'>")+content
-                +QString("</font>"));
-    emit hint(index/MATRIX_DIM, index%MATRIX_DIM);
+    //this should be a value from the range 0-35 for BCI Speller
+    int index = (int)((qrand()/(double)RAND_MAX*(MATRIX_DIM*MATRIX_DIM-1))+0.5);
+//    QString content = tiles[index]->text();
+//    stackedLayout->setCurrentIndex(0);
+//    message->setText(
+//        QString("count highlights of <font style='bold' color='green'>")+content
+//                +QString("</font>"));
+
+    //this should be propagated by the means of slots and signals
+    //the values should be from range 1-6
+    int row = index/MATRIX_DIM + 1;
+    int column = index%MATRIX_DIM + 1;
+
+    highlightTile(row, column);
+    emit hint(row, column);
 }
 
 /**
@@ -175,4 +185,12 @@ void SpellerWidget::eegFrameNotification(){ //training cycle: [hint->interval->(
 void SpellerWidget::trainingResetFramesCount(){
     frameCount=0;
     nextHighlightColumn=0;
+}
+
+QString SpellerWidget::getCellRegularStyle(){
+    return QString("background-color: black; color: gray; font-weight: normal;");
+}
+
+QString SpellerWidget::getCellHighlightedStyle(){
+    return QString("background-color: black; color: white; font-weight: bold;");
 }

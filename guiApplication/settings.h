@@ -9,6 +9,8 @@ class Settings : public QSettings
     Q_OBJECT
 public:
     static bool isDummyModeEnabled();
+    static bool isDummyDaqNoisy();
+
     static void setDummyModeEnabled(bool isIt);
 
     static bool isEegVisualizerEnabled();
@@ -27,6 +29,7 @@ public:
 
 private:
     static QString OPT_DUMMY_DAQ;
+    static QString OPT_DUMMY_DAQ_NOISY;
     static QString OPT_EEG_VISUALIZER;
     static QString OPT_EEG_DUMP_PATH;
     static QString OPT_META_DUMP_PATH;

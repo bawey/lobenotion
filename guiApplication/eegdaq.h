@@ -4,8 +4,8 @@
 #include <QObject>
 #include <vector>
 #include <QSharedPointer>
-#include <eegframe.h>
 #include <metaframe.h>
+#include <eegframe.h>
 #include <QThread>
 
 class EegDaq : public QThread
