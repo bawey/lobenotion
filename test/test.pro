@@ -16,5 +16,11 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += tst_testspellercontroller.cpp
+SOURCES += tst_testspellercontroller.cpp \
+    tst_spellerreceivermock.cpp \
+    mockapplication.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+HEADERS += \
+    tst_spellerreceivermock.h \
+    mockapplication.h

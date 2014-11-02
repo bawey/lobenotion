@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QThread>
 #include <QPair>
+#include <QDebug>
 
 /**
  *  This class handles the data-taking and online-use scenarios of the Speller
@@ -87,12 +88,12 @@ private:
     QVector<QString> keyboardSymbols;
     QString phraseToSpell = NULL;
 
-    unsigned int interStimulusInterval;
-    unsigned int highlightDuration;
-    unsigned int dimDurationShort;
-    unsigned int interPeriodInterval;
-    unsigned int infoDuration;
-    unsigned short int epochsPerStimulus;
+//    unsigned int interStimulusInterval;
+//    unsigned int highlightDuration;
+//    unsigned int dimDurationShort;
+//    unsigned int interPeriodInterval;
+//    unsigned int infoDuration;
+//    unsigned short int epochsPerStimulus;
 
 
 signals:
@@ -108,11 +109,16 @@ signals:
 
 public slots:
     /** external components can fireup the data taking with custom params **/
-    void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int highlightDuration, int infoDuration);
+    void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration);
     void endDataTaking();
 
     void startOnline(int epochsPerStimuli, int interStimulusInterval, int highlightDuration, int infoDuration);
     void endOnline();
+
+    void terminate(){
+        qDebug()<<"terminating SpellerController thread from "<<QThread::currentThread()->objectName();
+        thread->quit();
+    }
 };
 
 #endif // SPELLERCONTROLLER_H

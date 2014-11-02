@@ -4,6 +4,12 @@
 #include <QVector>
 #include <QString>
 #include <iostream>
+#include <QDebug>
+#include <QTime>
+#include <QThread>
+#include <QApplication>
+#include <mockapplication.h>
+#include <tst_spellerreceivermock.h>
 
 class TestSpellerController : public QObject
 {
@@ -18,33 +24,65 @@ private:
     QString keyboardSymbols = QString("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0");
     SpellerController* controller;
 
-
-    QTextStream* output;
-    QFile* file;
+    MockApplication* app;
+    QThread* mockThread;
+    SpellerReceiverMock* receiverMock;
 
 private Q_SLOTS:
+
     void testPhraseValidation();
     void testBlockRandomize();
     void testColRowToAndFromNumber();
     void testStartDataTaking();
 
     void cleanupTestCase();
+
+/** For testing the slot-dependent features **/
+signals:
+    void signalStartDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration);
+    void signalTerminateControllerThread();
+
+public slots:
+    void mockThreadStarted(){
+        qDebug()<<"MockThread is running and "<<QThread::currentThread()->objectName()<<" thread is notified about it";
+    }
+
+    void mockThreadFinished(){
+        qDebug()<<"MockThread is done and "<<QThread::currentThread()->objectName()<<" thread is notified about it";
+    }
 };
 
 TestSpellerController::TestSpellerController()
 {
-    QString filename="/tmp/TestSpellerController_extra.output";
-    file = new QFile( filename );
-    if ( file->open(QIODevice::Append) )
-    {
-        this->output = new QTextStream( file );
-        *output << "Stream created now and now" << endl;
-    }
+    /** some components will need an events loop **/
+    int argc=0;
+    char *argv[0];
+    app = new MockApplication(argc, argv);
+
+    QThread::currentThread()->setObjectName("TestSpellerControllerThread");
+
     this->controller = new SpellerController(matrixSize, keyboardSymbols);
+
+    qsrand((uint)QTime::currentTime().msec());
+    mockThread = new QThread();
+    mockThread->setObjectName("ReceiverMockThread");
+    receiverMock = new SpellerReceiverMock();
+    receiverMock->moveToThread(mockThread);
+    QObject::connect(controller, SIGNAL(dataTakingEnded()), receiverMock, SLOT(dataTakingEnded()));
+    bool connectStarted = QObject::connect(mockThread, SIGNAL(started()), this, SLOT(mockThreadStarted()));//, Qt::ConnectionType::BlockingQueuedConnection);
+    bool connectEnded = QObject::connect(mockThread, SIGNAL(finished()), this, SLOT(mockThreadFinished()));//, Qt::ConnectionType::BlockingQueuedConnection);
+    qDebug()<<"mockThread started and finished connected successfully: "<<connectStarted<<" and "<<connectEnded;
+    mockThread->start();
+
+    QObject::connect(this, SIGNAL(signalStartDataTaking(QString,int,int,int,int,int)), controller, SLOT(startDataTaking(QString,int,int,int,int,int)),
+                     Qt::ConnectionType::BlockingQueuedConnection);
+
+    QObject::connect(this, SIGNAL(signalTerminateControllerThread()), controller, SLOT(terminate()), Qt::ConnectionType::BlockingQueuedConnection);
+
+    qDebug()<<"SpellerControllerTest constructed!";
 }
 void TestSpellerController::testPhraseValidation()
 {
-    *output<<"About to test phrase validation"<<endl;
     QVERIFY2(controller->validateInputString("PIES"), "PIES is spellable using the character set provided");
     QVERIFY2(controller->validateInputString("CAT0123"), "CAT0123 is spellable using the character set provided");
     QVERIFY2(!controller->validateInputString("2_21"), "2_21 is NOT spellable using the character set provided");
@@ -70,8 +108,6 @@ void TestSpellerController::testColRowToAndFromNumber(){
 }
 
 void TestSpellerController::testBlockRandomize(){
-    *output<<"attempting another test"<<endl;
-
     QVector<short int>* indices = controller->blockRandomizeFlashes();
 
     QString stringified="";
@@ -79,8 +115,8 @@ void TestSpellerController::testBlockRandomize(){
         stringified+=QString::number(indices->at(i))+" ";
     }
 
-    *output<<stringified<<endl;
-    output->flush();
+    qDebug()<<"Randomized sequence: "<<stringified;
+
 
     QCOMPARE(2*matrixSize, indices->size());
 
@@ -103,15 +139,15 @@ void TestSpellerController::testBlockRandomize(){
 
 
     //make sure there is some randomization among both the rows and the columns
-    int unorderedCount=0;
+    float monotonicityCoeff=0;
 
     for(int i=2; i<indices->size(); i+=1){
-        if(indices->at(i)<indices->at(i-2)){
-            ++unorderedCount;
-        }
+        monotonicityCoeff+=qAbs(indices->at(i)-indices->at(i-2));
     }
-    QString message = QString("This order seems too much in order: ")+stringified;
-    QVERIFY2(unorderedCount>indices->length()/3, message.toStdString().c_str());
+    monotonicityCoeff/=(indices->length()-2);
+    qDebug()<<"m. coeff: "<<monotonicityCoeff;
+    QString message = QString("This order seems too much in order: ")+stringified+QString(" [monotonicity coeff: %1]").arg(monotonicityCoeff);
+    QVERIFY2(monotonicityCoeff>1.5, message.toStdString().c_str());
 
     //make sure the result varies between invocations
     QVector<short int>* nextIndices = controller->blockRandomizeFlashes();
@@ -120,25 +156,27 @@ void TestSpellerController::testBlockRandomize(){
         thereWasADifference=thereWasADifference || indices->at(i)!=nextIndices->at(i);
     }
     message=QString("Got the same vector twice in a row: ")+stringified;
-    *output<<"the next time we got: "<<nextIndices->at(0)<<" "<<nextIndices->at(1)<<"..."<<endl;
     QVERIFY2(thereWasADifference, message.toStdString().c_str());
 }
 
 void TestSpellerController::testStartDataTaking(){
-    controller->startDataTaking("OJEJ", 15, 200, 150, 300);
+    qDebug("Trying to emit a signal to Controller");
+    emit signalStartDataTaking("OJEJ", 3, 10, 100, 6, 30);
 }
 
 void TestSpellerController::cleanupTestCase(){
-    output->flush();
-    file->close();
-    delete output;
-    delete file;
-    delete controller;
+    emit signalTerminateControllerThread();
 }
 
 TestSpellerController::~TestSpellerController(){
+   controller->deleteLater();
 
+   mockThread->quit();
+   mockThread->wait();
+   delete receiverMock;
+   delete mockThread;
 }
+
 
 QTEST_APPLESS_MAIN(TestSpellerController)
 
