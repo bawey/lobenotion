@@ -15,14 +15,19 @@ public:
 
 private:
     unsigned short int matrixSize=6;
+    QString keyboardSymbols = QString("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0");
     SpellerController* controller;
+
 
     QTextStream* output;
     QFile* file;
 
 private Q_SLOTS:
-    void testConnection();
+    void testPhraseValidation();
     void testBlockRandomize();
+    void testColRowToAndFromNumber();
+    void testStartDataTaking();
+
     void cleanupTestCase();
 };
 
@@ -35,12 +40,33 @@ TestSpellerController::TestSpellerController()
         this->output = new QTextStream( file );
         *output << "Stream created now and now" << endl;
     }
-    this->controller = new SpellerController(matrixSize);
+    this->controller = new SpellerController(matrixSize, keyboardSymbols);
 }
-void TestSpellerController::testConnection()
+void TestSpellerController::testPhraseValidation()
 {
-    *output<<"dummy test and dummy output"<<endl;
-    QVERIFY2(true, "Failure");
+    *output<<"About to test phrase validation"<<endl;
+    QVERIFY2(controller->validateInputString("PIES"), "PIES is spellable using the character set provided");
+    QVERIFY2(controller->validateInputString("CAT0123"), "CAT0123 is spellable using the character set provided");
+    QVERIFY2(!controller->validateInputString("2_21"), "2_21 is NOT spellable using the character set provided");
+}
+
+void TestSpellerController::testColRowToAndFromNumber(){
+
+    unsigned short int columns[] =  {1, 3, 6, 5};
+    unsigned short int rows[] =     {1, 2, 6, 2};
+    unsigned short int numbers[] =  {0, 8, 35, 10};
+
+    for(unsigned short int i=0; i<sizeof(numbers)/sizeof(unsigned short int); ++i){
+        unsigned short int col=0;
+        unsigned short int row=0;
+
+        controller->symbolNumberToRowCol(numbers[i], row, col);
+
+        QCOMPARE(col, columns[i]);
+        QCOMPARE(row, rows[i]);
+        QCOMPARE(controller->symbolRowColToNumber(row, col), numbers[i]);
+    }
+
 }
 
 void TestSpellerController::testBlockRandomize(){
@@ -96,6 +122,10 @@ void TestSpellerController::testBlockRandomize(){
     message=QString("Got the same vector twice in a row: ")+stringified;
     *output<<"the next time we got: "<<nextIndices->at(0)<<" "<<nextIndices->at(1)<<"..."<<endl;
     QVERIFY2(thereWasADifference, message.toStdString().c_str());
+}
+
+void TestSpellerController::testStartDataTaking(){
+    controller->startDataTaking("OJEJ", 15, 200, 150, 300);
 }
 
 void TestSpellerController::cleanupTestCase(){
