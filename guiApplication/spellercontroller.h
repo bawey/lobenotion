@@ -88,14 +88,6 @@ private:
     QVector<QString> keyboardSymbols;
     QString phraseToSpell = NULL;
 
-//    unsigned int interStimulusInterval;
-//    unsigned int highlightDuration;
-//    unsigned int dimDurationShort;
-//    unsigned int interPeriodInterval;
-//    unsigned int infoDuration;
-//    unsigned short int epochsPerStimulus;
-
-
 signals:
 
     /** signals the start and the end of data-taking/online mode, so that other components can adjust **/
@@ -105,6 +97,13 @@ signals:
     void onlineStarted();
     void onlineEnded();
 
+    /** scenario-related signals **/
+    void commandRowColHighlight(short rowOrCol);
+    void commandShowMessage(QString msg);
+    void commandDimKeyboard();
+
+    void commandNextPeriod();
+    void commandIndicateTarget(short row, short column);
 
 
 public slots:

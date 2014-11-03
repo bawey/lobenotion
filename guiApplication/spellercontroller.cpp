@@ -3,6 +3,15 @@
 #include <QStringList>
 #include <QDebug>
 
+/**
+ * @brief SpellerController::SpellerController
+ * @param newMatrixSize
+ * @param symbols
+ * @param parent
+ *
+ * Scenario is strictly constrained with respect to: number of blinks, number of dims
+ *
+ */
 SpellerController::SpellerController(unsigned short int newMatrixSize, QString symbols, QObject *parent) :
     QObject(parent), matrixSize(newMatrixSize)
 {
@@ -61,17 +70,12 @@ QVector<short int>* SpellerController::blockRandomizeFlashes(){
 
 
 void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration){
-    qDebug("Controller received a startDataTaking signal");
+    // qDebug("Controller received a startDataTaking signal");
 
     if(!validateInputString(phrase) || !validateTimings(interStimulusInterval, interPeriodInterval, highlightDuration, infoDuration)){
-        //should emit data taking over with an error code
+        //TODO: should emit data taking over with an error code
         return;
     }
-
-//    this->epochsPerStimulus=epochsPerStimulus;
-//    this->interStimulusInterval=interStimulusInterval;
-//    this->highlightDuration = highlightDuration;
-//    this->infoDuration = infoDuration;
 
     for(int targetIdx = 0; targetIdx<phrase.length(); ++targetIdx){
         QString target = phrase.mid(targetIdx, 1);
@@ -80,30 +84,35 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         unsigned short int column;
         symbolNumberToRowCol(number, row, column);
 
-        qDebug()<<"Instructing to focus on column "<<column<<", row "<<row;
+        emit commandNextPeriod();
+        //qDebug()<<"Instructing to focus on column "<<column<<", row "<<row;
+        emit commandIndicateTarget(row, column);
+
         thread->msleep(infoDuration);
 
-        qDebug()<<"Dimming for short";
+        // qDebug()<<"Dimming for short";
+        emit commandDimKeyboard();
         thread->msleep(interStimulusInterval);
 
         for(int flashNo=0; flashNo<epochsPerStimulus; ++flashNo){
-            qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
+            // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
             for(int blockNo = 0; blockNo<stimuli->length(); ++blockNo){
-//                qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
+                //  qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
+                emit commandRowColHighlight(stimuli->at(blockNo));
                 thread->msleep(highlightDuration);
-//                qDebug()<<"Dimming for short";
+                //  qDebug()<<"Dimming for short";
+                emit commandDimKeyboard();
                 thread->msleep(interStimulusInterval-highlightDuration);
             }
             delete stimuli;
         }
 
-        qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
+        // qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
+        emit commandDimKeyboard();
         thread->msleep(interPeriodInterval);
-
-        //send the instruction: please focus on this and that letter
     }
-    qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
+    // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
     emit dataTakingEnded();
 }
 void SpellerController::endDataTaking(){}

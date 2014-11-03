@@ -10,6 +10,15 @@
 #include <QApplication>
 #include <mockapplication.h>
 #include <tst_spellerreceivermock.h>
+#include <QMap>
+#include <QPair>
+
+/**
+ *  Some behind-the-scenes sorcery prevents slots in this object's thread from being called.
+ *  Hence the mock is moved to a separate thread and will somehow be accessed to see if all the elements appeared as many times as required.
+ *
+ * @brief The TestSpellerController class
+ */
 
 class TestSpellerController : public QObject
 {
@@ -68,18 +77,27 @@ TestSpellerController::TestSpellerController()
     mockThread->setObjectName("ReceiverMockThread");
     receiverMock = new SpellerReceiverMock();
     receiverMock->moveToThread(mockThread);
-    QObject::connect(controller, SIGNAL(dataTakingEnded()), receiverMock, SLOT(dataTakingEnded()));
-    bool connectStarted = QObject::connect(mockThread, SIGNAL(started()), this, SLOT(mockThreadStarted()));//, Qt::ConnectionType::BlockingQueuedConnection);
-    bool connectEnded = QObject::connect(mockThread, SIGNAL(finished()), this, SLOT(mockThreadFinished()));//, Qt::ConnectionType::BlockingQueuedConnection);
-    qDebug()<<"mockThread started and finished connected successfully: "<<connectStarted<<" and "<<connectEnded;
+
+
+    QObject::connect(mockThread, SIGNAL(started()), receiverMock, SLOT(initializeMembers()));
+
     mockThread->start();
 
+    //Connect all the signals-slots
+
+    QObject::connect(controller, SIGNAL(dataTakingEnded()), receiverMock, SLOT(dataTakingEnded()));
     QObject::connect(this, SIGNAL(signalStartDataTaking(QString,int,int,int,int,int)), controller, SLOT(startDataTaking(QString,int,int,int,int,int)),
                      Qt::ConnectionType::BlockingQueuedConnection);
 
     QObject::connect(this, SIGNAL(signalTerminateControllerThread()), controller, SLOT(terminate()), Qt::ConnectionType::BlockingQueuedConnection);
 
-    qDebug()<<"SpellerControllerTest constructed!";
+    connect(controller, SIGNAL(commandDimKeyboard()), receiverMock, SLOT(dim()));
+    connect(controller, SIGNAL(commandRowColHighlight(short)), receiverMock, SLOT(highlightRowCol(short)));
+    connect(controller, SIGNAL(commandShowMessage(QString)), receiverMock, SLOT(displayInformation(QString)));
+    connect(controller, SIGNAL(commandNextPeriod()), receiverMock, SLOT(nextPeriod()));
+    connect(controller, SIGNAL(commandIndicateTarget(short,short)), receiverMock, SLOT(indicateTarget(short,short)));
+
+    //qDebug()<<"TestSpellerController constructed!";
 }
 void TestSpellerController::testPhraseValidation()
 {
@@ -161,7 +179,44 @@ void TestSpellerController::testBlockRandomize(){
 
 void TestSpellerController::testStartDataTaking(){
     qDebug("Trying to emit a signal to Controller");
-    emit signalStartDataTaking("OJEJ", 3, 10, 100, 6, 30);
+    //blocking connection ensures we can "examine" the mock right after handling the signal
+
+    QString phrase = "OJEJ";
+    unsigned short flashesPerStimulus = 3;
+    unsigned short interStimulusInterval = 10;
+    unsigned short interPeriodInterval = 100;
+    unsigned short highlightDuration = 6;
+    unsigned short informationDuration = 30;
+
+    emit signalStartDataTaking(phrase, flashesPerStimulus, interStimulusInterval, interPeriodInterval, highlightDuration, informationDuration);
+
+    QCOMPARE((int) receiverMock->periodsCount, phrase.length());
+
+    unsigned short expectedDims = matrixSize*2*flashesPerStimulus+2;
+    QString targetPhrase="";
+    for(int i=0; i<receiverMock->periodsCount; ++i){
+        QCOMPARE(receiverMock->dimsInPeriods->at(i), expectedDims);
+        QMap<short, unsigned short>* stimuliHistogram = receiverMock->stimuliInPeriods->at(i);
+        for(short key = -matrixSize; key<=matrixSize; key==-1 ? key+=2 : ++key){
+            //qDebug()<<"In period "<<i<<" stimuli code "<<key<<" appeared "<<stimuliHistogram->value(key)<<" times";
+            QVERIFY2(stimuliHistogram->contains(key), QString("Stimuli code %1 not present!").arg(QString::number(key)).toStdString().c_str());
+            QVERIFY2(stimuliHistogram->value(key)==flashesPerStimulus, "Strange number of flashes per stimulus");
+        }
+        QPair<unsigned short, unsigned short>* rowCol = receiverMock->targets->at(i);
+        unsigned short symbolNumber = controller->symbolRowColToNumber(rowCol->first, rowCol->second);
+        targetPhrase.append(keyboardSymbols.at(symbolNumber*2));
+    }
+    QCOMPARE(phrase, targetPhrase);
+    qDebug()<<"Fine, each of "<<receiverMock->periodsCount<<" periods contained "<<expectedDims<<
+              " requests to dim the keyboard, each stimulus was highlighted "<<flashesPerStimulus<<
+              "times and target phrase was: "<<targetPhrase;
+
+    /** Check if Mock received the 'session complete' signal and if in a correct thread
+     */
+    QVERIFY2(receiverMock->notifiedAboutSessionEnd, "Mock object has not been notified about the session end");
+    QVERIFY(receiverMock->sessionEndReceivedByThreadName!=QThread::currentThread()->objectName());
+    QVERIFY(receiverMock->sessionEndReceivedByThreadName!=QString(""));
+
 }
 
 void TestSpellerController::cleanupTestCase(){
