@@ -8,6 +8,8 @@ class Timer : private QTime
 private:
     static Timer* instance;
     Timer();
+
+    static Timer* getInstance();
 public:
     static void start();
     static int getTime();

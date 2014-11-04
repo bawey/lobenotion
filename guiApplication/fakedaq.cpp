@@ -56,8 +56,8 @@ void FakeDaq::run(){
                                                                                 generateContactQuality(time),
                                                                                 generateContactQuality(time)));
 
-            this->metaFrame(metaFrame);
+            emit this->metaFrame(metaFrame);
         }
-        this->eegFrame(eegFrame);
+        emit this->eegFrame(eegFrame);
     }
 }

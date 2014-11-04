@@ -12,6 +12,8 @@
 #include <tst_spellerreceivermock.h>
 #include <QMap>
 #include <QPair>
+#include <eegdaq.h>
+#include <fakedaq.h>
 
 /**
  *  Some behind-the-scenes sorcery prevents slots in this object's thread from being called.
@@ -68,9 +70,12 @@ TestSpellerController::TestSpellerController()
     char *argv[0];
     app = new MockApplication(argc, argv);
 
+    EegDaq* daq = new FakeDaq();
+    daq->start();
+
     QThread::currentThread()->setObjectName("TestSpellerControllerThread");
 
-    this->controller = new SpellerController(matrixSize, keyboardSymbols);
+    this->controller = new SpellerController(daq, matrixSize, keyboardSymbols);
 
     qsrand((uint)QTime::currentTime().msec());
     mockThread = new QThread();

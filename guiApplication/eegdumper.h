@@ -11,6 +11,7 @@ class EegDumper : public EegProcessor
 {
     Q_OBJECT
 private:
+    QString parentPath;
     QFile* file;
     QTextStream* out;
 

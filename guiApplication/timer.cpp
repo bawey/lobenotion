@@ -8,7 +8,7 @@ Timer::Timer() : QTime(){
 
 }
 
-void Timer::start(){
+Timer* Timer::getInstance(){
     static QMutex mutex;
     if(instance == NULL){
         mutex.lock();
@@ -18,10 +18,20 @@ void Timer::start(){
         }
         mutex.unlock();
     }
+    return instance;
+}
+
+/**
+ * @brief Timer::start
+ * SLightly deprecated. Now it is assumed that the first request top getTime() should result in starting the timer
+ * (if needed, as well)
+ */
+void Timer::start(){
+    Timer::getInstance();
 }
 
 int Timer::getTime(){
-    return instance->elapsed();
+    return Timer::getInstance()->elapsed();
 }
 
 

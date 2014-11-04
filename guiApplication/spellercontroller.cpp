@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <QStringList>
 #include <QDebug>
+#include <QTime>
+#include <QMutex>
 
 /**
  * @brief SpellerController::SpellerController
@@ -12,8 +14,8 @@
  * Scenario is strictly constrained with respect to: number of blinks, number of dims
  *
  */
-SpellerController::SpellerController(unsigned short int newMatrixSize, QString symbols, QObject *parent) :
-    QObject(parent), matrixSize(newMatrixSize)
+SpellerController::SpellerController(EegDaq* daqPtr, unsigned short int newMatrixSize, QString symbols, QObject *parent) :
+    daq(daqPtr), QObject(parent), matrixSize(newMatrixSize)
 {
     this->keyboardSymbols=QVector<QString>();
 
@@ -31,11 +33,44 @@ SpellerController::SpellerController(unsigned short int newMatrixSize, QString s
 
     thread->start();
 
+    /** set the Dumper up **/
+    //TODO: remove hardcoded path
+    dumper = new SpellerDumper();
+    dumperThread = new QThread();
+    dumper->moveToThread(dumperThread);
+    dumperThread->start();
+
+    connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    connect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
+    connect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
+    connect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
+
 }
 
 SpellerController::~SpellerController(){
     //should it be auto-deleted through parentage??
     delete thread;
+}
+
+/**
+ * Rounds up the sleep duration to a multiple of probing period.
+ * Essentailly it blocks waiting for new frames until the waiting period
+ * reaches the intended duration.
+ *
+ * Can we still dispatch frames in such situation???
+ *
+ * @brief SpellerController::sleepFrameAligned
+ * @param duration
+ */
+void SpellerController::sleepFrameAligned(unsigned long duration){
+    unsigned long startTime = QTime::currentTime().msec();
+    QMutex mutex;
+    while(QTime::currentTime().msec()-startTime<duration){
+        mutex.lock();
+        daq->getFrameEmittedWaitCondition()->wait(&mutex);
+        qDebug()<<"frame aligned sleep slept for "<<(QTime::currentTime().msec()-startTime)<<" of ouf "<<duration;
+        mutex.unlock();
+    }
 }
 
 QVector<short int>* SpellerController::blockRandomizeFlashes(){
@@ -75,6 +110,8 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
     if(!validateInputString(phrase) || !validateTimings(interStimulusInterval, interPeriodInterval, highlightDuration, infoDuration)){
         //TODO: should emit data taking over with an error code
         return;
+    }else{
+        emit dataTakingStarted("DefaultSubject", "/tmp/eeg.dumps/");
     }
 
     for(int targetIdx = 0; targetIdx<phrase.length(); ++targetIdx){
@@ -88,11 +125,14 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         //qDebug()<<"Instructing to focus on column "<<column<<", row "<<row;
         emit commandIndicateTarget(row, column);
 
-        thread->msleep(infoDuration);
+        //thread->msleep(infoDuration);
+        this->sleepFrameAligned(infoDuration);
+
 
         // qDebug()<<"Dimming for short";
         emit commandDimKeyboard();
-        thread->msleep(interStimulusInterval);
+        //thread->msleep(interStimulusInterval);
+        this->sleepFrameAligned(interStimulusInterval);
 
         for(int flashNo=0; flashNo<epochsPerStimulus; ++flashNo){
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
@@ -100,17 +140,20 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
             for(int blockNo = 0; blockNo<stimuli->length(); ++blockNo){
                 //  qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
                 emit commandRowColHighlight(stimuli->at(blockNo));
-                thread->msleep(highlightDuration);
+                // thread->msleep(highlightDuration);
+                this->sleepFrameAligned(highlightDuration);
                 //  qDebug()<<"Dimming for short";
                 emit commandDimKeyboard();
-                thread->msleep(interStimulusInterval-highlightDuration);
+                //thread->msleep(interStimulusInterval-highlightDuration);
+                this->sleepFrameAligned(interStimulusInterval-highlightDuration);
             }
             delete stimuli;
         }
 
         // qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
         emit commandDimKeyboard();
-        thread->msleep(interPeriodInterval);
+        //thread->msleep(interPeriodInterval);
+        this->sleepFrameAligned(interPeriodInterval);
     }
     // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
     emit dataTakingEnded();
@@ -119,3 +162,5 @@ void SpellerController::endDataTaking(){}
 
 void SpellerController::startOnline(int epochsPerStimulus, int interStimulusInterval, int highlightDuration, int infoDuration){}
 void SpellerController::endOnline(){}
+
+

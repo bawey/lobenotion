@@ -11,6 +11,8 @@
 #include <QThread>
 #include <QPair>
 #include <QDebug>
+#include <eegdaq.h>
+#include <spellerdumper.h>
 
 /**
  *  This class handles the data-taking and online-use scenarios of the Speller
@@ -25,7 +27,7 @@ class SpellerController : public QObject
     Q_OBJECT
 
 public:
-    explicit SpellerController(unsigned short int matrixSize, QString characters, QObject *parent = 0);
+    explicit SpellerController(EegDaq* daq, unsigned short int matrixSize, QString characters, QObject *parent = 0);
     virtual ~SpellerController();
 
     /**
@@ -50,6 +52,19 @@ public:
     unsigned short int symbolRowColToNumber(short int row, short int col){
         return (qAbs(row)-1)*matrixSize + qAbs(col)-1;
     }
+
+private:
+    EegDaq* daq;
+
+    QThread* thread;
+    unsigned short int matrixSize = 0;
+    QVector<QString> keyboardSymbols;
+    QString phraseToSpell = NULL;
+
+    SpellerDumper* dumper;
+    QThread* dumperThread;
+
+    void sleepFrameAligned(unsigned long ms);
 
 TEST_VISIBILITY:
     QVector<short> *blockRandomizeFlashes();
@@ -82,16 +97,12 @@ TEST_VISIBILITY:
                 infoDuration > interStimulusInterval;
     }
 
-private:
-    QThread* thread;
-    unsigned short int matrixSize = 0;
-    QVector<QString> keyboardSymbols;
-    QString phraseToSpell = NULL;
+
 
 signals:
 
     /** signals the start and the end of data-taking/online mode, so that other components can adjust **/
-    void dataTakingStarted();
+    void dataTakingStarted(QString subjectName, QString parentDirPath);
     void dataTakingEnded();
 
     void onlineStarted();
