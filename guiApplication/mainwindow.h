@@ -8,58 +8,61 @@
 #include <QAction>
 #include <QString>
 #include <QWidget>
-#include <eegvisualizer.h>
-#include <spellerwidget.h>
-#include <spellerdumper.h>
-#include <metaprocessor.h>
-#include <eegdumper.h>
+#include <widgets/eegplotwidget.h>
+#include <widgets/spellerwidget.h>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QWidget>
 #include <QHBoxLayout>
-#include <eegdaq.h>
-#include <fakedaq.h>
-#include <epocdaq.h>
 #include <QPushButton>
+#include <master.h>
+#include <widgets/eegmetadatawidget.h>
+#include <widgets/spellercontrollerwidget.h>
+#include <eegdaq.h>
+#include <spellercontroller.h>
+#include <metaprocessor.h>
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 private:
-    EegVisualizer*  visualizer;
-    MetaProcessor*  metaProcessor;
-    SpellerDumper*  spellerDumper;
-    EegDumper*      eegDumper;
-    SpellerWidget*  spellerWidget;
-    EegDaq*         daq;
+    // CHILD WIDGETS:
+    EegPlotWidget* eegPlot;
+    SpellerWidget* spellerWidget;
+    SpellerControllerWidget* spellerCtlWidget;
+    EegMetaDataWidget* metaDataWidget;
 
-
+    // LAYOUT COMPONENTS:
     QStackedLayout* stackLayout;
+    QWidget* dashboardWidget;
     QHBoxLayout* dashboardLayout;
+    QHBoxLayout* spellerBox;
+
     QMenu* fileMenu;
     QMenu* editMenu;
     QMenu* helpMenu;
+
+    // MENU ACTIONS:
     QAction* takeData;
-    QAction* overview;
+    QAction* dashboard;
     QAction* preferences;
     QAction* about;
 
-    QPushButton* daqStart;
-    QPushButton* daqStop;
-    QLabel* daqSignalProblem;
+    // OTHER PROGRAM COMPONENTS:
+    Master* master;
+    const EegDaq* daq;
+    const SpellerController* spellerCtl;
+    const MetaProcessor* metaProcessor;
+
+    void connectSignalsToSlots();
 
 public:
-    explicit MainWindow(EegVisualizer* visualizerObject,    MetaProcessor* metaProcessorObject,
-                        SpellerDumper* spellerDumperObj,    EegDumper* eegDumperObject,
-                        SpellerWidget* spellerWidgetObject, EegDaq* eegDaq,
-                        QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0);
 
     QStackedLayout* getLayout(){
         return stackLayout;
     }
-
-
 
 signals:
     void closeDumpingSession();
@@ -67,12 +70,9 @@ signals:
 
 public slots:
     void slotDataTaking();
-    void slotDaqStart();
-    void slotDaqStop();
     void slotDashboard();
     void slotAbout();
     void slotPreferences();
-    void signalFineDuringDaq(bool yesno);
 };
 
 #endif // MAINWINDOW_H

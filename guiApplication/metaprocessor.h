@@ -9,45 +9,24 @@
 #include <QLabel>
 #include <eegframe.h>
 
-class MetaProcessor : public QThread
+class MetaProcessor : public QObject
 {
     Q_OBJECT
 public:
     explicit MetaProcessor();
-    QWidget* const getWidget() const{
-        return widget;
-    }
+
+    bool signalFine();
 
 private:
-    constexpr static int META_BUFFER_LENGTH=10;
-    QSharedPointer<MetaFrame> metaBuffer[META_BUFFER_LENGTH];
-    int metaBufferedCount = 0;
-    QMutex lock;
-    QWaitCondition bufferNotEmpty;
-    QWaitCondition bufferNotFull;
-
-    QWidget* widget;
-    QLabel* qualityLabels[EegFrame::CONTACTS_NO];
-    QLabel signalQualityLabel;
-    QLabel batteryLevelWidget;
-    QLabel metaBufferWidget;
-
-    bool graphicOutputEnabled=true;
     bool signalsFineSoFar;
-
-    void run();
     void processMetaFrame(QSharedPointer<MetaFrame>);
-
-    static constexpr int processEvery=32;
+    QMutex signalQualityMutex;
 
 signals:
-    void signalFine(bool truefalse);
+    void signalFine(bool isFine);
 public slots:
-    virtual void metaFrame(QSharedPointer<MetaFrame> eegFrame);
-    void enableGraphicOutput(bool yesno=true);
-    void disableGraphicOutput(){
-        graphicOutputEnabled=false;
-    }
+    void metaFrame(QSharedPointer<MetaFrame> eegFrame);
+
 };
 
 #endif // METAPROCESSOR_H

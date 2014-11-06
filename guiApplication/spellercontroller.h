@@ -11,8 +11,11 @@
 #include <QThread>
 #include <QPair>
 #include <QDebug>
+#include <QDir>
+#include <QSharedPointer>
 #include <eegdaq.h>
 #include <spellerdumper.h>
+#include <metaframe.h>
 
 /**
  *  This class handles the data-taking and online-use scenarios of the Speller
@@ -27,6 +30,10 @@ class SpellerController : public QObject
     Q_OBJECT
 
 public:
+
+    constexpr static unsigned char ERRCODE_PARAMETERS = 1;
+    constexpr static unsigned char ERRCODE_SIGNAL = 2;
+
     explicit SpellerController(EegDaq* daq, unsigned short int matrixSize, QString characters, QObject *parent = 0);
     virtual ~SpellerController();
 
@@ -54,6 +61,8 @@ public:
     }
 
 private:
+    bool signalFine=false;
+
     EegDaq* daq;
 
     QThread* thread;
@@ -65,6 +74,8 @@ private:
     QThread* dumperThread;
 
     void sleepFrameAligned(unsigned long ms);
+    void connectSignalsToSlots();
+    void disconnectSignalsFromSlots();
 
 TEST_VISIBILITY:
     QVector<short> *blockRandomizeFlashes();
@@ -116,10 +127,12 @@ signals:
     void commandNextPeriod();
     void commandIndicateTarget(short row, short column);
 
+    void error(unsigned char code);
 
 public slots:
     /** external components can fireup the data taking with custom params **/
-    void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration);
+    void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
+                         QString subjectName="DefaultSubject", QString parentDirectory=QDir::tempPath()+"/eeg.dumps/");
     void endDataTaking();
 
     void startOnline(int epochsPerStimuli, int interStimulusInterval, int highlightDuration, int infoDuration);
@@ -129,6 +142,8 @@ public slots:
         qDebug()<<"terminating SpellerController thread from "<<QThread::currentThread()->objectName();
         thread->quit();
     }
+
+    void eegMetaFrame(QSharedPointer<MetaFrame> metaFrame);
 };
 
 #endif // SPELLERCONTROLLER_H

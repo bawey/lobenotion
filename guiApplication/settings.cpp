@@ -8,6 +8,8 @@ QString Settings::OPT_DUMMY_DAQ_NOISY="dummyDaqNoisy";
 QString Settings::OPT_EEG_VISUALIZER="eegVisualizer";
 QString Settings::OPT_EEG_DUMP_PATH="eegDumpPath";
 QString Settings::OPT_META_DUMP_PATH="metaDumpPath";
+QString Settings::OPT_SPELLER_MATRIX_SIZE="spellerMatrixSize";
+QString Settings::OPT_SPELLER_CHARSET="spellerCharset";
 
 
 Settings* Settings::instance;
@@ -58,4 +60,12 @@ QString Settings::getEegDumpPath(){
 
 QString Settings::getMetaDumpPath(){
     return getInstance()->value(Settings::OPT_META_DUMP_PATH).toString();
+}
+
+QString Settings::getSpellerCharset(){
+    return getInstance()->value(Settings::OPT_SPELLER_CHARSET).toString();
+}
+
+unsigned short Settings::getSpellerMatrixSize(){
+    return (unsigned short) getInstance()->value(Settings::OPT_SPELLER_MATRIX_SIZE).toInt();
 }

@@ -5,7 +5,7 @@ EegDaq::EegDaq() :
 {
     frameEmitted=new QWaitCondition();
     qRegisterMetaType<QSharedPointer<EegFrame>>("QSharedPointer<EegFrame>");
-    qRegisterMetaType<QSharedPointer<EegFrame>>("QSharedPointer<EegFrame>");
+    qRegisterMetaType<QSharedPointer<MetaFrame>>("QSharedPointer<MetaFrame>");
 
     connect(this, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), this, SLOT(frameProducedSlot()));
     this->moveToThread(this);

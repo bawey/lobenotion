@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QString>
-#include <spellerwidget.h>
+#include <widgets/spellerwidget.h>
 #include <eegdaq.h>
 
 class Stimulant : public QThread

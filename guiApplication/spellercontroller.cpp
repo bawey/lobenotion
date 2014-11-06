@@ -29,27 +29,37 @@ SpellerController::SpellerController(EegDaq* daqPtr, unsigned short int newMatri
     thread->setObjectName("SpellerControllerThread");
 
     this->moveToThread(thread);
-    thread->setObjectName("SpellerControllerThread");
-
     thread->start();
 
     /** set the Dumper up **/
     //TODO: remove hardcoded path
     dumper = new SpellerDumper();
+
     dumperThread = new QThread();
     dumper->moveToThread(dumperThread);
     dumperThread->start();
 
-    connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    connectSignalsToSlots();
+}
+
+void SpellerController::connectSignalsToSlots(){
+    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), this, SLOT(eegMetaFrame(QSharedPointer<MetaFrame>)));
     connect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
     connect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
     connect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
-
 }
 
 SpellerController::~SpellerController(){
+    disconnectSignalsFromSlots();
     //should it be auto-deleted through parentage??
     delete thread;
+}
+
+void SpellerController::disconnectSignalsFromSlots(){
+    disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), this, SLOT(eegMetaFrame(QSharedPointer<MetaFrame>)));
+    disconnect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
+    disconnect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
+    disconnect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
 }
 
 /**
@@ -104,17 +114,22 @@ QVector<short int>* SpellerController::blockRandomizeFlashes(){
 }
 
 
-void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration){
+void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
+                                        QString subjectName, QString parentDirectory){
     // qDebug("Controller received a startDataTaking signal");
 
     if(!validateInputString(phrase) || !validateTimings(interStimulusInterval, interPeriodInterval, highlightDuration, infoDuration)){
-        //TODO: should emit data taking over with an error code
+        emit error(SpellerController::ERRCODE_PARAMETERS);
         return;
     }else{
-        emit dataTakingStarted("DefaultSubject", "/tmp/eeg.dumps/");
+        emit dataTakingStarted(subjectName, parentDirectory);
+        connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
 
-    for(int targetIdx = 0; targetIdx<phrase.length(); ++targetIdx){
+    bool signalNeverBad = true;
+
+    for(int targetIdx = 0; targetIdx<phrase.length() && signalNeverBad; ++targetIdx){
+
         QString target = phrase.mid(targetIdx, 1);
         unsigned short int number = keyboardSymbols.indexOf(target);
         unsigned short int row;
@@ -128,16 +143,17 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         //thread->msleep(infoDuration);
         this->sleepFrameAligned(infoDuration);
 
-
         // qDebug()<<"Dimming for short";
         emit commandDimKeyboard();
         //thread->msleep(interStimulusInterval);
         this->sleepFrameAligned(interStimulusInterval);
 
-        for(int flashNo=0; flashNo<epochsPerStimulus; ++flashNo){
+        signalNeverBad = signalNeverBad && signalFine;
+
+        for(int flashNo=0; flashNo<epochsPerStimulus && signalNeverBad; ++flashNo){
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
-            for(int blockNo = 0; blockNo<stimuli->length(); ++blockNo){
+            for(int blockNo = 0; blockNo<stimuli->length() && signalNeverBad; ++blockNo){
                 //  qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
                 emit commandRowColHighlight(stimuli->at(blockNo));
                 // thread->msleep(highlightDuration);
@@ -146,6 +162,7 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
                 emit commandDimKeyboard();
                 //thread->msleep(interStimulusInterval-highlightDuration);
                 this->sleepFrameAligned(interStimulusInterval-highlightDuration);
+                signalNeverBad = signalNeverBad && signalFine;
             }
             delete stimuli;
         }
@@ -156,11 +173,21 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         this->sleepFrameAligned(interPeriodInterval);
     }
     // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
+    if(!signalNeverBad){
+        emit error(ERRCODE_SIGNAL);
+    }
     emit dataTakingEnded();
 }
-void SpellerController::endDataTaking(){}
+
+void SpellerController::endDataTaking(){
+    disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    emit dataTakingEnded();
+}
 
 void SpellerController::startOnline(int epochsPerStimulus, int interStimulusInterval, int highlightDuration, int infoDuration){}
+
 void SpellerController::endOnline(){}
 
+void SpellerController::eegMetaFrame(QSharedPointer<MetaFrame> metaFrame){
 
+}

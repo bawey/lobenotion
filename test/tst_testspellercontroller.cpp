@@ -50,7 +50,8 @@ private Q_SLOTS:
 
 /** For testing the slot-dependent features **/
 signals:
-    void signalStartDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration);
+    void signalStartDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval,
+                               int highlightDuration, int infoDuration, QString subjectName, QString parentDir);
     void signalTerminateControllerThread();
 
 public slots:
@@ -91,7 +92,7 @@ TestSpellerController::TestSpellerController()
     //Connect all the signals-slots
 
     QObject::connect(controller, SIGNAL(dataTakingEnded()), receiverMock, SLOT(dataTakingEnded()));
-    QObject::connect(this, SIGNAL(signalStartDataTaking(QString,int,int,int,int,int)), controller, SLOT(startDataTaking(QString,int,int,int,int,int)),
+    QObject::connect(this, SIGNAL(signalStartDataTaking(QString,int,int,int,int,int)), controller, SLOT(startDataTaking(QString,int,int,int,int,int, QString, QString)),
                      Qt::ConnectionType::BlockingQueuedConnection);
 
     QObject::connect(this, SIGNAL(signalTerminateControllerThread()), controller, SLOT(terminate()), Qt::ConnectionType::BlockingQueuedConnection);
@@ -193,7 +194,8 @@ void TestSpellerController::testStartDataTaking(){
     unsigned short highlightDuration = 6;
     unsigned short informationDuration = 30;
 
-    emit signalStartDataTaking(phrase, flashesPerStimulus, interStimulusInterval, interPeriodInterval, highlightDuration, informationDuration);
+    emit signalStartDataTaking(phrase, flashesPerStimulus, interStimulusInterval, interPeriodInterval,
+                               highlightDuration, informationDuration, "MockSubject", QDir::tempPath()+"/mockEeg");
 
     QCOMPARE((int) receiverMock->periodsCount, phrase.length());
 

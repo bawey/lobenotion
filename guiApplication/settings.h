@@ -26,6 +26,8 @@ public:
 
     static QString getEegDumpPath();
     static QString getMetaDumpPath();
+    static QString getSpellerCharset();
+    static unsigned short getSpellerMatrixSize();
 
 private:
     static QString OPT_DUMMY_DAQ;
@@ -33,6 +35,8 @@ private:
     static QString OPT_EEG_VISUALIZER;
     static QString OPT_EEG_DUMP_PATH;
     static QString OPT_META_DUMP_PATH;
+    static QString OPT_SPELLER_CHARSET;
+    static QString OPT_SPELLER_MATRIX_SIZE;
 
     static Settings* getInstance();
     static Settings* instance;
