@@ -16,8 +16,8 @@ public:
     explicit SpellerControllerWidget(QWidget *parent = 0);
 
 private:
-    QPushButton* daqStart;
-    QPushButton* daqStop;
+    QPushButton* buttonStartDaq;
+    QPushButton* buttonStopDaq;
     QLabel* daqSignalProblem;
 
     // container for all the experiment parameters passed from the controller
@@ -34,6 +34,8 @@ private:
     QSpinBox* epochsPerStimulus;
     QSpinBox* interPeriodGap;
 
+    QLabel* labelError;
+
     void connectSignalsToSlots();
 
 signals:
@@ -41,10 +43,13 @@ signals:
                                QString subjectName, QString parentDirectory);
     void signalDataTakingEnd();
 public slots:
+    void slotSignalFine(bool);
     void slotDataTakingStarted();
     void slotDataTakingFinished();
+    void slotSpellerError(unsigned char);
     // to handle the buttons
     void slotButtonPressedStart();
+    void slotButtonPressedFinish();
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H

@@ -33,6 +33,8 @@ Master::Master(QObject *parent) :
 
 void Master::connectModules(){
     connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+    connect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
+    spellerController->slotSignalFine(metaProcessor->signalFine());
 }
 
 Master* Master::getInstance(){
@@ -41,6 +43,7 @@ Master* Master::getInstance(){
         if(Master::instance==NULL){
             Master::instance=new Master();
         }
+        Master::instance->doGlobalInitialization();
         Master::mutex.unlock();
     }
     return Master::instance;

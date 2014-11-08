@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
     stackLayout->addWidget(new QLabel("4"));
     stackLayout->addWidget(new QLabel("5"));
 
-    stackLayout->setCurrentIndex(5);
+    stackLayout->setCurrentIndex(1);
 
     connectSignalsToSlots();
 
@@ -95,6 +95,23 @@ void MainWindow::connectSignalsToSlots(){
     connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
     connect(metaProcessor, SIGNAL(signalFine(bool)), metaDataWidget, SLOT(signalGood(bool)));
     metaDataWidget->signalGood(metaProcessor->signalFine());
+
+    // spellerCtlWidget and spellerController - permanent connections
+    connect(spellerCtlWidget, SIGNAL(signalDataTakingStart(QString,int,int,int,int,int,QString,QString)), spellerCtl, SLOT(startDataTaking(QString,int,int,int,int,int,QString,QString)));
+    connect(spellerCtlWidget, SIGNAL(signalDataTakingEnd()), spellerCtl, SLOT(endDataTaking()));
+    connect(spellerCtl, SIGNAL(dataTakingStarted(QString,QString)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
+    connect(spellerCtl, SIGNAL(dataTakingEnded()), spellerCtlWidget, SLOT(slotDataTakingFinished()));
+    connect(spellerCtl, SIGNAL(error(unsigned char)), spellerCtlWidget, SLOT(slotSpellerError(unsigned char)));
+    // spellerCtlWidget needs also some notion of signal quality from MetaProcessor
+    connect(metaProcessor, SIGNAL(signalFine(bool)), spellerCtlWidget, SLOT(slotSignalFine(bool)));
+    spellerCtlWidget->slotSignalFine(metaProcessor->signalFine());
+    // spellerWidget and spellerController - permanent connections
+    connect(spellerCtl, SIGNAL(commandRowColHighlight(short)), spellerWidget, SLOT(highlight(short)));
+    connect(spellerCtl, SIGNAL(commandDimKeyboard()), spellerWidget, SLOT(unhighlight()));
+    connect(spellerCtl, SIGNAL(commandIndicateTarget(short,short)), spellerWidget, SLOT(highlightTile(short,short)));
+    //connect(spellerCtl, SIGNAL(), spellerWidget, SLOT());
+
+    // spellerController to mainWindow - prevent switching tabs
 }
 
 

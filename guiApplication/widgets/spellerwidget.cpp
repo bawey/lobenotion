@@ -88,13 +88,15 @@ void SpellerWidget::unhighlight(){
 
 void SpellerWidget::highlightOnOff(short code, bool onOff){
     stackedLayout->setCurrentIndex(1);
+    qDebug()<<(onOff?"highlighting: ":"dimming: ");
     if(code<0){
         for(int i=0; i<MATRIX_DIM; ++i){
-            code = qAbs(code);
-            tiles[i*MATRIX_DIM+(code-1)]->setStyleSheet(onOff ? SpellerWidget::getCellHighlightedStyle() : SpellerWidget::getCellRegularStyle());
+//            qDebug()<<"tile: "<<(i*MATRIX_DIM+(qAbs(code)-1));
+            tiles[i*MATRIX_DIM+(qAbs(code)-1)]->setStyleSheet(onOff ? SpellerWidget::getCellHighlightedStyle() : SpellerWidget::getCellRegularStyle());
         }
-    }else{
+    }else if(code>0){
         for(int i=0; i<MATRIX_DIM; ++i){
+//            qDebug()<<"tile: "<<((code-1)*MATRIX_DIM+i);
             tiles[(code-1)*MATRIX_DIM+i]->setStyleSheet(onOff ? SpellerWidget::getCellHighlightedStyle() : SpellerWidget::getCellRegularStyle());
         }
     }
@@ -102,7 +104,7 @@ void SpellerWidget::highlightOnOff(short code, bool onOff){
 }
 
 //assuming values 1-6 for clear communication between classes
-void SpellerWidget::highlightTile(unsigned short row, unsigned short column){
+void SpellerWidget::highlightTile(short row, short column){
     tiles[(row-1)*MATRIX_DIM+(column-1)]->setStyleSheet(SpellerWidget::getCellHighlightedStyle());
     // could also be set to column. all the tiles along this line will later be reset
     this->highlighted=row;

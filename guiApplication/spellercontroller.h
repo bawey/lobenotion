@@ -33,6 +33,7 @@ public:
 
     constexpr static unsigned char ERRCODE_PARAMETERS = 1;
     constexpr static unsigned char ERRCODE_SIGNAL = 2;
+    constexpr static unsigned char ERRCODE_ABORTED = 4;
 
     explicit SpellerController(EegDaq* daq, unsigned short int matrixSize, QString characters, QObject *parent = 0);
     virtual ~SpellerController();
@@ -61,7 +62,8 @@ public:
     }
 
 private:
-    bool signalFine=false;
+    bool flagSignalFine=false;
+    bool flagAbort=false;
 
     EegDaq* daq;
 
@@ -143,7 +145,7 @@ public slots:
         thread->quit();
     }
 
-    void eegMetaFrame(QSharedPointer<MetaFrame> metaFrame);
+    void slotSignalFine(bool isIt);
 };
 
 #endif // SPELLERCONTROLLER_H

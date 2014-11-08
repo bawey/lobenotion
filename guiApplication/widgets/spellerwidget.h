@@ -36,7 +36,7 @@ public:
 public slots:
 
     void highlight(short code);
-    void highlightTile(unsigned short row, unsigned short column);
+    void highlightTile(short row, short column);
     void unhighlight();
     void showMessage(QString str);
 

@@ -1,17 +1,21 @@
 #include "spellercontrollerwidget.h"
 #include <settings.h>
-
+#include <QDebug>
+#include <spellercontroller.h>
+#include <QMessageBox>
 
 SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     QWidget(parent)
 {
     this->setLayout(new QVBoxLayout());
-    daqStart=new QPushButton("Start");
-    daqStop=new QPushButton("Finish");
-    daqStop->setEnabled(false);
+    buttonStartDaq=new QPushButton("Start");
+    buttonStartDaq->setEnabled(false);
+    buttonStopDaq=new QPushButton("Finish");
+    buttonStopDaq->setEnabled(false);
     daqSignalProblem = new QLabel();
-    this->layout()->addWidget(daqStart);
-    this->layout()->addWidget(daqStop);
+    daqSignalProblem->setText("Cannot start data taking due to noisy signal.");
+    this->layout()->addWidget(buttonStartDaq);
+    this->layout()->addWidget(buttonStopDaq);
     this->layout()->addWidget(daqSignalProblem);
 
     formLayout=new QFormLayout();
@@ -52,10 +56,15 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     //void startDataTaking(int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
 
     this->layout()->addWidget(form);
+
+    labelError = new QLabel();
+    this->layout()->addWidget(labelError);
+
     ((QVBoxLayout*)this->layout())->addStretch();
 
     // CONNECT INTERNAL SLOTS
-    connect(daqStart, SIGNAL(clicked()), this, SLOT(slotButtonPressedStart()));
+    connect(buttonStartDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedStart()));
+    connect(buttonStopDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedFinish()));
 }
 
 void SpellerControllerWidget::connectSignalsToSlots(){
@@ -66,15 +75,16 @@ void SpellerControllerWidget::connectSignalsToSlots(){
 
 
 void SpellerControllerWidget::slotDataTakingStarted(){
-    daqStart->setEnabled(false);
-    daqStop->setEnabled(true);
-
-    daqSignalProblem->hide();
+    buttonStartDaq->setEnabled(false);
+    buttonStopDaq->setEnabled(true);
+    if(labelError->isVisible()){
+        labelError->hide();
+    }
 }
 
 void SpellerControllerWidget::slotDataTakingFinished(){
-    daqStart->setEnabled(true);
-    daqStop->setEnabled(false);
+    buttonStartDaq->setEnabled(true);
+    buttonStopDaq->setEnabled(false);
 }
 
 void SpellerControllerWidget::slotButtonPressedStart(){
@@ -98,6 +108,44 @@ void SpellerControllerWidget::slotButtonPressedStart(){
     Settings::setSpellerInterPeriodStint(interPeriodGapValue);
 
     emit signalDataTakingStart(phraseValue, flashesPerStimulus, interStimulusInterval, interPeriodGapValue, highlightDurationValue, infoDurationValue, subjectNameValue, pathValue);
+}
 
+void SpellerControllerWidget::slotSignalFine(bool isFine){
+    if(buttonStartDaq->isEnabled() && !isFine){
+        daqSignalProblem->show();
+        buttonStartDaq->setEnabled(false);
+    }else if(!buttonStopDaq->isEnabled() && !buttonStartDaq->isEnabled() && isFine){ //if data taking not in progress and START button disabled due to bad signal
+        daqSignalProblem->hide();
+        buttonStartDaq->setEnabled(true);
+    }
+}
 
+void SpellerControllerWidget::slotSpellerError(unsigned char code){
+    this->labelError->show();
+    switch(code){
+    case SpellerController::ERRCODE_SIGNAL:
+        labelError->setText("Speller Ctl error: noisy signal!");
+        break;
+    case SpellerController::ERRCODE_PARAMETERS:
+        labelError->setText("Speller Ctl error: parameters validation!");
+        break;
+    case SpellerController::ERRCODE_ABORTED:
+        labelError->setText("Data taking aborted by the user.");
+        break;
+    default:
+        labelError->setText(QString("Speller Ctl error code: %1!").arg(QString::number(code)));
+        break;
+    }
+    qDebug()<<"Speller ERROR number "<<code;
+}
+
+void SpellerControllerWidget::slotButtonPressedFinish(){
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Test", "This will terminate the data taking session. Continue?", QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        emit signalDataTakingEnd();
+        qDebug() << "Yes was clicked";
+    } else {
+        qDebug() << "Yes was *not* clicked";
+    }
 }
