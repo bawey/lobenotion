@@ -28,7 +28,11 @@ Master::Master(QObject *parent) :
 
     daq->start();
 
+    connectModules();
+}
 
+void Master::connectModules(){
+    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
 }
 
 Master* Master::getInstance(){

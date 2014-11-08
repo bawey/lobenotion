@@ -1,6 +1,7 @@
 #include "eegmetadatawidget.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <timer.h>
 
 EegMetaDataWidget::EegMetaDataWidget(QWidget *parent) :
     QWidget(parent)
@@ -29,11 +30,6 @@ EegMetaDataWidget::EegMetaDataWidget(QWidget *parent) :
     batteryLevelWidget.setText("Initializing...");
     column->addLayout(batteryRow);
 
-    QHBoxLayout* bufferRow = new QHBoxLayout();
-    bufferRow->addWidget(new QLabel("Buffer:"));
-    bufferRow->addWidget(&metaBufferWidget);
-    column->addLayout(bufferRow);
-
     this->setLayout(column);
 }
 
@@ -46,8 +42,17 @@ EegMetaDataWidget::~EegMetaDataWidget(){
 }
 
 void EegMetaDataWidget::metaFrame(QSharedPointer<MetaFrame> framePtr){
-    for(int i=0; i<EegFrame::CONTACTS_NO; ++i){
-        qualityLabels[i]->setText(QString::number(framePtr->getQuality(i),'f',3));
+    static unsigned long lastTime = 0;
+    if(Timer::getTime()-lastTime>250){
+        lastTime=Timer::getTime();
+        for(int i=0; i<EegFrame::CONTACTS_NO; ++i){
+            qualityLabels[i]->setText(QString::number(framePtr->getQuality(i),'f',3));
+            if(framePtr->getQuality(i)>=0.8){
+                qualityLabels[i]->setStyleSheet("QLabel { color : green; }");
+            }else{
+                qualityLabels[i]->setStyleSheet("QLabel { color : red; }");
+            }
+        }
     }
 
     batteryLevelWidget.setText(QString::number(framePtr->battery));

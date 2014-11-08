@@ -10,13 +10,8 @@ MetaProcessor::MetaProcessor() :
     signalsFineSoFar=false;
 }
 
-bool MetaProcessor::signalFine(){
-    //Synchronization isn't really needed here - a signal is anyway sent after every state change
-    bool value = false;
-    signalQualityMutex.lock();
-    value = signalsFineSoFar;
-    signalQualityMutex.unlock();
-    return value;
+bool MetaProcessor::signalFine() const{
+    return signalsFineSoFar;
 }
 
 void MetaProcessor::metaFrame(QSharedPointer<MetaFrame> eegFrame){

@@ -18,7 +18,6 @@ private:
     QLabel* qualityLabels[EegFrame::CONTACTS_NO];
     QLabel signalQualityLabel;
     QLabel batteryLevelWidget;
-    QLabel metaBufferWidget;
 
 signals:
 

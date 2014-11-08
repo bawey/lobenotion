@@ -53,6 +53,8 @@ private:
     MetaProcessor* metaProcessor;
     SpellerController* spellerController;
 
+    void connectModules();
+
 
 signals:
 

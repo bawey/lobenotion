@@ -15,12 +15,11 @@ class MetaProcessor : public QObject
 public:
     explicit MetaProcessor();
 
-    bool signalFine();
+    bool signalFine() const;
 
 private:
     bool signalsFineSoFar;
     void processMetaFrame(QSharedPointer<MetaFrame>);
-    QMutex signalQualityMutex;
 
 signals:
     void signalFine(bool isFine);

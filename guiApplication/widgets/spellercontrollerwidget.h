@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QLineEdit>
+#include <QFormLayout>
+#include <QSpinBox>
 
 class SpellerControllerWidget : public QWidget
 {
@@ -17,14 +20,31 @@ private:
     QPushButton* daqStop;
     QLabel* daqSignalProblem;
 
+    // container for all the experiment parameters passed from the controller
+    QFormLayout* formLayout;
+    QWidget* form;
+    // speller parameters
+    QLineEdit* spellPhrase;
+    QLineEdit* parentDir;
+    QLineEdit* subjectName;
+
+    QSpinBox* highlightDuration;
+    QSpinBox* dimDuration;
+    QSpinBox* infoDuration;
+    QSpinBox* epochsPerStimulus;
+    QSpinBox* interPeriodGap;
+
     void connectSignalsToSlots();
 
 signals:
-    void signalDataTakingStart();
+    void signalDataTakingStart(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
+                               QString subjectName, QString parentDirectory);
     void signalDataTakingEnd();
 public slots:
     void slotDataTakingStarted();
     void slotDataTakingFinished();
+    // to handle the buttons
+    void slotButtonPressedStart();
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H

@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //spellerBox->addStretch();
     spellerWrapperWidget->setLayout(spellerBox);
     spellerWrapperWidget->layout()->addWidget(spellerWidget);
+    spellerWrapperWidget->layout()->addWidget(spellerCtlWidget);
     //spellerBox->addStretch();
 
 
@@ -83,16 +84,17 @@ MainWindow::MainWindow(QWidget *parent) :
     stackLayout->addWidget(new QLabel("4"));
     stackLayout->addWidget(new QLabel("5"));
 
-
-
-
     stackLayout->setCurrentIndex(5);
+
+    connectSignalsToSlots();
 
     slotDashboard();
 }
 
 void MainWindow::connectSignalsToSlots(){
-
+    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+    connect(metaProcessor, SIGNAL(signalFine(bool)), metaDataWidget, SLOT(signalGood(bool)));
+    metaDataWidget->signalGood(metaProcessor->signalFine());
 }
 
 
