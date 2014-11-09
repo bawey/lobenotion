@@ -29,6 +29,17 @@ class SpellerController : public QObject
 {
     Q_OBJECT
 
+    struct dataTakingParams{
+        unsigned int stintHighlight;
+        unsigned int stintDim;
+        unsigned int stintInfo;
+        unsigned int stintInterPeriod;
+        unsigned short epochsPerStimulus;
+        QString phrase;
+        QString subjectName;
+        QString parentDir;
+    };
+
 public:
 
     constexpr static unsigned char ERRCODE_PARAMETERS = 1;
@@ -104,13 +115,12 @@ TEST_VISIBILITY:
      * @param infoDuration
      * @return
      */
-    bool validateTimings(unsigned int interStimulusInterval, unsigned int interPeriodInterval,
-                         unsigned int highlightDuration, unsigned int infoDuration){
-        return highlightDuration < interStimulusInterval && interPeriodInterval > interStimulusInterval &&
-                infoDuration > interStimulusInterval;
+    bool validateTimings(const SpellerController::dataTakingParams& params) const{
+        return params.stintHighlight>0 && params.stintDim>0 && params.stintInterPeriod>params.stintHighlight
+                && params.stintInfo>params.stintHighlight;
     }
 
-
+    void dataTakingJob(SpellerController::dataTakingParams* params);
 
 signals:
 
@@ -146,6 +156,7 @@ public slots:
     }
 
     void slotSignalFine(bool isIt);
+
 };
 
 #endif // SPELLERCONTROLLER_H

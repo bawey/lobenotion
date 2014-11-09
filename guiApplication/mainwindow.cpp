@@ -71,13 +71,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QWidget* spellerWrapperWidget = new QWidget();
     spellerBox = new QHBoxLayout();
-    //without these stretches, the keyboard resizes nicely
-    //spellerBox->addStretch();
+
     spellerWrapperWidget->setLayout(spellerBox);
     spellerWrapperWidget->layout()->addWidget(spellerWidget);
     spellerWrapperWidget->layout()->addWidget(spellerCtlWidget);
-    //spellerBox->addStretch();
-
 
     stackLayout->addWidget(spellerWrapperWidget);
     stackLayout->addWidget(new QLabel("3"));

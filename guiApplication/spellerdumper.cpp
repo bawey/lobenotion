@@ -66,6 +66,7 @@ void SpellerDumper::spellerHighlight(short code){
 void SpellerDumper::spellerHint(short row, short column){
     targetRow=row;
     targetColumn=column;
+    *targetsStream<<Timer::getTime()<<" "<<row<<" "<<(-qAbs(column))<<endl;
 }
 
 void SpellerDumper::startDumpingSession(QString subjectName, QString parentDirPath){
@@ -89,6 +90,7 @@ void SpellerDumper::startDumpingSession(QString subjectName, QString parentDirPa
 
     dataStream=new QTextStream(dataFile);
     metaStream=new QTextStream(metaFile);
+    targetsStream=new QTextStream(targetsFile);
 
     targetRow=0;
     targetColumn=0;

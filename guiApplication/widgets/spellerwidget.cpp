@@ -88,7 +88,7 @@ void SpellerWidget::unhighlight(){
 
 void SpellerWidget::highlightOnOff(short code, bool onOff){
     stackedLayout->setCurrentIndex(1);
-    qDebug()<<(onOff?"highlighting: ":"dimming: ");
+//    qDebug()<<(onOff?"highlighting: ":"dimming: ");
     if(code<0){
         for(int i=0; i<MATRIX_DIM; ++i){
 //            qDebug()<<"tile: "<<(i*MATRIX_DIM+(qAbs(code)-1));

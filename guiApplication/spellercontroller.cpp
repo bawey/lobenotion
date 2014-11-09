@@ -4,6 +4,10 @@
 #include <QDebug>
 #include <QTime>
 #include <QMutex>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+#include <timer.h>
+
 
 /**
  * @brief SpellerController::SpellerController
@@ -44,6 +48,7 @@ SpellerController::SpellerController(EegDaq* daqPtr, unsigned short int newMatri
 
 void SpellerController::connectSignalsToSlots(){
     connect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
+    connect(this, SIGNAL(commandIndicateTarget(short,short)), dumper, SLOT(spellerHint(short,short)));
     connect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
     connect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
 }
@@ -72,14 +77,14 @@ void SpellerController::disconnectSignalsFromSlots(){
  * @param duration
  */
 void SpellerController::sleepFrameAligned(unsigned long duration){
-    unsigned long startTime = QTime::currentTime().msec();
+    int startTime = Timer::getTime();
     QMutex mutex;
-    while(QTime::currentTime().msec()-startTime<duration){
+    while(Timer::getTime()-startTime<duration){
         mutex.lock();
         daq->getFrameEmittedWaitCondition()->wait(&mutex);
-//      qDebug()<<"frame aligned sleep slept for "<<(QTime::currentTime().msec()-startTime)<<" of ouf "<<duration;
         mutex.unlock();
     }
+//    qDebug()<<"frame aligned sleep slept for "<<(Timer::getTime()-startTime)<<" of ouf "<<duration;
 }
 
 QVector<short int>* SpellerController::blockRandomizeFlashes(){
@@ -112,26 +117,22 @@ QVector<short int>* SpellerController::blockRandomizeFlashes(){
     return stimuli;
 }
 
-
-void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
-                                        QString subjectName, QString parentDirectory){
-    // qDebug("Controller received a startDataTaking signal");
+void SpellerController::dataTakingJob(dataTakingParams *params){
+    bool signalNeverBad = true;
 
     // this flag can externally be set via a signal-slot connection from the GUI
     flagAbort=false;
 
-    if(!validateInputString(phrase) || !validateTimings(interStimulusInterval, interPeriodInterval, highlightDuration, infoDuration)){
+    if(!validateInputString(params->phrase) || !validateTimings(*params)){
         emit error(SpellerController::ERRCODE_PARAMETERS);
         return;
     }else{
-        emit dataTakingStarted(subjectName, parentDirectory);
+        emit dataTakingStarted(params->subjectName, params->parentDir);
         connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
 
-    bool signalNeverBad = true;
-
-    for(int targetIdx = 0; targetIdx<phrase.length() && signalNeverBad && !flagAbort; ++targetIdx){
-        QString target = phrase.mid(targetIdx, 1);
+    for(int targetIdx = 0; targetIdx<params->phrase.length() && signalNeverBad && !flagAbort; ++targetIdx){
+        QString target = params->phrase.mid(targetIdx, 1);
         unsigned short int number = keyboardSymbols.indexOf(target);
         unsigned short int row;
         unsigned short int column;
@@ -142,29 +143,29 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         emit commandIndicateTarget(row, column);
 
         //thread->msleep(infoDuration);
-        this->sleepFrameAligned(infoDuration);
+        this->sleepFrameAligned(params->stintInfo);
 
         // qDebug()<<"Dimming for short";
         emit commandDimKeyboard();
         //thread->msleep(interStimulusInterval);
-        this->sleepFrameAligned(interStimulusInterval);
+        this->sleepFrameAligned(params->stintInterPeriod);
 
         // signal quality is periodically checked in some parts of this loop
         // a class member field, signalFine, can be set via a signal-slot while the loop executes
         signalNeverBad = signalNeverBad && flagSignalFine;
 
-        for(int flashNo=0; flashNo<epochsPerStimulus && signalNeverBad && !flagAbort; ++flashNo){
+        for(int flashNo=0; flashNo<params->epochsPerStimulus && signalNeverBad && !flagAbort; ++flashNo){
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
             for(int blockNo = 0; blockNo<stimuli->length() && signalNeverBad && !flagAbort; ++blockNo){
                 //  qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
                 emit commandRowColHighlight(stimuli->at(blockNo));
                 // thread->msleep(highlightDuration);
-                this->sleepFrameAligned(highlightDuration);
+                this->sleepFrameAligned(params->stintHighlight);
                 //  qDebug()<<"Dimming for short";
                 emit commandDimKeyboard();
                 //thread->msleep(interStimulusInterval-highlightDuration);
-                this->sleepFrameAligned(interStimulusInterval-highlightDuration);
+                this->sleepFrameAligned(params->stintDim);
                 signalNeverBad = signalNeverBad && flagSignalFine;
             }
             delete stimuli;
@@ -173,7 +174,7 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
         // qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
         emit commandDimKeyboard();
         //thread->msleep(interPeriodInterval);
-        this->sleepFrameAligned(interPeriodInterval);
+        this->sleepFrameAligned(params->stintInterPeriod);
     }
     // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
     if(!signalNeverBad){
@@ -181,13 +182,32 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
     }else if(flagAbort){
         emit error(ERRCODE_ABORTED);
     }
+
+    // Make sure the dumper doesn't capture more frames
+    disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     emit dataTakingEnded();
+    delete params;
+}
+
+void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
+                                        QString subjectName, QString parentDirectory){
+    SpellerController::dataTakingParams* params = new SpellerController::dataTakingParams();
+
+    params->stintHighlight=highlightDuration;
+    params->stintDim=interStimulusInterval-highlightDuration;
+    params->stintInfo=infoDuration;
+    params->stintInterPeriod=interPeriodInterval;
+    params->epochsPerStimulus=epochsPerStimulus;
+    params->subjectName=subjectName;
+    params->parentDir=parentDirectory;
+    params->phrase=phrase;
+
+    QtConcurrent::run(this, &SpellerController::dataTakingJob, params);
 }
 
 void SpellerController::endDataTaking(){
     qDebug()<<"data taking abort request received";
     flagAbort=true;
-    disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
 }
 
 void SpellerController::startOnline(int epochsPerStimulus, int interStimulusInterval, int highlightDuration, int infoDuration){}
@@ -197,3 +217,5 @@ void SpellerController::endOnline(){}
 void SpellerController::slotSignalFine(bool isIt){
     this->flagSignalFine=isIt;
 }
+
+

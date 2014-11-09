@@ -34,33 +34,34 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
 
     epochsPerStimulus = new QSpinBox();
     epochsPerStimulus->setValue(Settings::getSpellerEpochsPerStimulus());
-    formLayout->addRow("Epochs per stimulus", epochsPerStimulus);
+    formLayout->addRow("Repetitions", epochsPerStimulus);
     highlightDuration = new QSpinBox();
     highlightDuration->setMaximum(1000);
     highlightDuration->setValue(Settings::getSpellerHighlightStint());
-    formLayout->addRow("Highlight duration", highlightDuration);
+    formLayout->addRow("Highlight stint", highlightDuration);
     dimDuration = new QSpinBox();
     dimDuration->setMaximum(1000);
     dimDuration->setValue(Settings::getSpellerDimStint());
-    formLayout->addRow("Dim duration", dimDuration);
+    formLayout->addRow("Dim stint", dimDuration);
     infoDuration = new QSpinBox();
     infoDuration->setMaximum(10000);
     infoDuration->setValue(Settings::getSpellerInfoStint());
-    formLayout->addRow("Info duration", infoDuration);
+    formLayout->addRow("Info stint", infoDuration);
     interPeriodGap = new QSpinBox();
     interPeriodGap->setMaximum(10000);
     interPeriodGap->setValue(Settings::getSpellerInterPeriodStint());
     formLayout->addRow("Inter-period gap", interPeriodGap);
-
 
     //void startDataTaking(int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
 
     this->layout()->addWidget(form);
 
     labelError = new QLabel();
-    this->layout()->addWidget(labelError);
+    labelError->setWordWrap(true);
 
-    ((QVBoxLayout*)this->layout())->addStretch();
+    this->layout()->addWidget(labelError);
+    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    ((QVBoxLayout*) this->layout())->addStretch();
 
     // CONNECT INTERNAL SLOTS
     connect(buttonStartDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedStart()));
