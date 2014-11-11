@@ -47,10 +47,12 @@ SpellerController::SpellerController(EegDaq* daqPtr, unsigned short int newMatri
 }
 
 void SpellerController::connectSignalsToSlots(){
+    //qRegisterMetaType<dataTakingParams*>("dataTakingParams*");
     connect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
     connect(this, SIGNAL(commandIndicateTarget(short,short)), dumper, SLOT(spellerHint(short,short)));
-    connect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
+    connect(this, SIGNAL(dataTakingStarted(dataTakingParams*)), dumper, SLOT(startDumpingSession(dataTakingParams*)));
     connect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
+    connect(this, SIGNAL(error(unsigned char)), dumper, SLOT(spellerError(unsigned char)));
 }
 
 SpellerController::~SpellerController(){
@@ -62,7 +64,7 @@ SpellerController::~SpellerController(){
 void SpellerController::disconnectSignalsFromSlots(){
     disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), this, SLOT(eegMetaFrame(QSharedPointer<MetaFrame>)));
     disconnect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
-    disconnect(this, SIGNAL(dataTakingStarted(QString, QString)), dumper, SLOT(startDumpingSession(QString, QString)));
+    disconnect(this, SIGNAL(dataTakingStarted(dataTakingParams*)), dumper, SLOT(startDumpingSession(dataTakingParams*)));
     disconnect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
 }
 
@@ -127,7 +129,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         emit error(SpellerController::ERRCODE_PARAMETERS);
         return;
     }else{
-        emit dataTakingStarted(params->subjectName, params->parentDir);
+        emit dataTakingStarted(params);
         connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
 
@@ -191,7 +193,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
 
 void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
                                         QString subjectName, QString parentDirectory){
-    SpellerController::dataTakingParams* params = new SpellerController::dataTakingParams();
+    dataTakingParams* params = new dataTakingParams();
 
     params->stintHighlight=highlightDuration;
     params->stintDim=interStimulusInterval-highlightDuration;

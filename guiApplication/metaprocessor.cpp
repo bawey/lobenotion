@@ -21,7 +21,8 @@ void MetaProcessor::metaFrame(QSharedPointer<MetaFrame> eegFrame){
 void MetaProcessor::processMetaFrame(QSharedPointer<MetaFrame> framePtr){
     bool signalsFineNow=true;
     for(unsigned char i=0; i<EegFrame::CONTACTS_NO; ++i){
-        if(framePtr->getQuality(i)<=0.8){
+        //!!!! ignore quality
+        if(framePtr->getQuality(i)<0.0){
             signalsFineNow=false;
             break;
         }

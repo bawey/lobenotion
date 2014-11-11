@@ -25,6 +25,7 @@ private:
 
     static QString getCellRegularStyle();
     static QString getCellHighlightedStyle();
+    static QString getCellIndicatedStyle();
 
     void highlightOnOff(short code, bool on);
 

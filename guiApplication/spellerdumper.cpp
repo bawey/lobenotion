@@ -69,28 +69,38 @@ void SpellerDumper::spellerHint(short row, short column){
     *targetsStream<<Timer::getTime()<<" "<<row<<" "<<(-qAbs(column))<<endl;
 }
 
-void SpellerDumper::startDumpingSession(QString subjectName, QString parentDirPath){
+void SpellerDumper::startDumpingSession(dataTakingParams* params){
 
-    determineParentDirectory(parentDirPath);
+    determineParentDirectory(params->parentDir);
 
     QString filename;
     unsigned short suffix = 0;
 
     do{
-        filename=filename.sprintf("%s_session_%03d", subjectName.toStdString().c_str(), suffix++);
+        filename=filename.sprintf("%s_session_%03d", params->subjectName.toStdString().c_str(), suffix++);
     }while(parentDir->exists(filename+"_data"));
 
     dataFile = new QFile(parentDir->filePath(filename+"_data"));
     metaFile = new QFile(parentDir->filePath(filename+"_meta"));
     targetsFile = new QFile(parentDir->filePath(filename+"_targets"));
+    summaryFile = new QFile(parentDir->filePath(filename+"_summary"));
 
     dataFile->open(QIODevice::WriteOnly | QIODevice::Text);
     metaFile->open(QIODevice::WriteOnly | QIODevice::Text);
     targetsFile->open(QIODevice::WriteOnly | QIODevice::Text);
+    summaryFile->open(QIODevice::WriteOnly | QIODevice::Text);
 
     dataStream=new QTextStream(dataFile);
     metaStream=new QTextStream(metaFile);
     targetsStream=new QTextStream(targetsFile);
+    summaryStream=new QTextStream(summaryFile);
+
+    *summaryStream<<"phrase: "<<params->phrase<<endl;
+    *summaryStream<<"repeats: "<<params->epochsPerStimulus<<endl;
+    *summaryStream<<"highlight: "<<params->stintHighlight<<endl;
+    *summaryStream<<"dim: "<<params->stintDim<<endl;
+    *summaryStream<<"info: "<<params->stintInfo<<endl;
+    *summaryStream<<"interPeriod: "<<params->stintInterPeriod<<endl;
 
     targetRow=0;
     targetColumn=0;
@@ -109,6 +119,10 @@ void SpellerDumper::closeDumpingSession(){
         targetsStream->flush();
         delete targetsStream;
     }
+    if(summaryStream!=0){
+        summaryStream->flush();
+        delete summaryStream;
+    }
     if(dataFile!=0){
         dataFile->close();
         delete dataFile;
@@ -121,7 +135,18 @@ void SpellerDumper::closeDumpingSession(){
         targetsFile->close();
         delete targetsFile;
     }
+    if(summaryFile!=0){
+        summaryFile->close();
+        delete summaryFile;
+    }
 
-    dataFile=metaFile=targetsFile=0;
-    dataStream=metaStream=targetsStream=0;
+    dataFile=metaFile=targetsFile=summaryFile=0;
+    dataStream=metaStream=targetsStream=summaryStream=0;
+}
+
+void SpellerDumper::spellerError(unsigned char errcode){
+    //Ignore errors while not dumping
+    if(summaryStream!=0){
+       *summaryStream<<"errcode: "<<errcode<<" at "<<Timer::getTime()<<endl;
+    }
 }

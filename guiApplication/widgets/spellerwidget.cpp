@@ -105,7 +105,7 @@ void SpellerWidget::highlightOnOff(short code, bool onOff){
 
 //assuming values 1-6 for clear communication between classes
 void SpellerWidget::highlightTile(short row, short column){
-    tiles[(row-1)*MATRIX_DIM+(column-1)]->setStyleSheet(SpellerWidget::getCellHighlightedStyle());
+    tiles[(row-1)*MATRIX_DIM+(column-1)]->setStyleSheet(SpellerWidget::getCellIndicatedStyle());
     // could also be set to column. all the tiles along this line will later be reset
     this->highlighted=row;
 }
@@ -121,4 +121,8 @@ QString SpellerWidget::getCellRegularStyle(){
 
 QString SpellerWidget::getCellHighlightedStyle(){
     return QString("background-color: black; color: white; font-weight: bold;");
+}
+
+QString SpellerWidget::getCellIndicatedStyle(){
+    return QString("background-color: green; color: black; font-weight: bold;");
 }

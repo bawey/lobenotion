@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dashboardLayout = new QHBoxLayout();
     dashboardLayout->addWidget(eegPlot);
     dashboardLayout->addWidget(metaDataWidget);
+    metaDataWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     dashboardWidget->setLayout(dashboardLayout);
     stackLayout->addWidget(dashboardWidget);
@@ -96,7 +97,7 @@ void MainWindow::connectSignalsToSlots(){
     // spellerCtlWidget and spellerController - permanent connections
     connect(spellerCtlWidget, SIGNAL(signalDataTakingStart(QString,int,int,int,int,int,QString,QString)), spellerCtl, SLOT(startDataTaking(QString,int,int,int,int,int,QString,QString)));
     connect(spellerCtlWidget, SIGNAL(signalDataTakingEnd()), spellerCtl, SLOT(endDataTaking()));
-    connect(spellerCtl, SIGNAL(dataTakingStarted(QString,QString)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
+    connect(spellerCtl, SIGNAL(dataTakingStarted(dataTakingParams*)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
     connect(spellerCtl, SIGNAL(dataTakingEnded()), spellerCtlWidget, SLOT(slotDataTakingFinished()));
     connect(spellerCtl, SIGNAL(error(unsigned char)), spellerCtlWidget, SLOT(slotSpellerError(unsigned char)));
     // spellerCtlWidget needs also some notion of signal quality from MetaProcessor

@@ -8,11 +8,11 @@
 #include <QHBoxLayout>
 #include <qcustomplot/qcustomplot.h>
 
-class EegPlotWidget : public QWidget
+class EegPlotWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    explicit EegPlotWidget(QWidget *parent = 0);
+    explicit EegPlotWidget(QString title="Signals", QWidget *parent = 0);
 
 private:
     QCPGraph* graphs[EegFrame::CONTACTS_NO];

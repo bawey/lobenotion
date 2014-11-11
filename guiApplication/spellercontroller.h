@@ -17,6 +17,8 @@
 #include <spellerdumper.h>
 #include <metaframe.h>
 
+class SpellerDumper;
+
 /**
  *  This class handles the data-taking and online-use scenarios of the Speller
  *  It:
@@ -25,20 +27,20 @@
  *      -   handles the inilialization/cleanup of any of the scenarios
  */
 
+struct dataTakingParams{
+    unsigned int stintHighlight;
+    unsigned int stintDim;
+    unsigned int stintInfo;
+    unsigned int stintInterPeriod;
+    unsigned short epochsPerStimulus;
+    QString phrase;
+    QString subjectName;
+    QString parentDir;
+};
+
 class SpellerController : public QObject
 {
-    Q_OBJECT
-
-    struct dataTakingParams{
-        unsigned int stintHighlight;
-        unsigned int stintDim;
-        unsigned int stintInfo;
-        unsigned int stintInterPeriod;
-        unsigned short epochsPerStimulus;
-        QString phrase;
-        QString subjectName;
-        QString parentDir;
-    };
+    Q_OBJECT  
 
 public:
 
@@ -115,17 +117,17 @@ TEST_VISIBILITY:
      * @param infoDuration
      * @return
      */
-    bool validateTimings(const SpellerController::dataTakingParams& params) const{
+    bool validateTimings(const dataTakingParams& params) const{
         return params.stintHighlight>0 && params.stintDim>0 && params.stintInterPeriod>params.stintHighlight
                 && params.stintInfo>params.stintHighlight;
     }
 
-    void dataTakingJob(SpellerController::dataTakingParams* params);
+    void dataTakingJob(dataTakingParams* params);
 
 signals:
 
     /** signals the start and the end of data-taking/online mode, so that other components can adjust **/
-    void dataTakingStarted(QString subjectName, QString parentDirPath);
+    void dataTakingStarted(dataTakingParams* params);
     void dataTakingEnded();
 
     void onlineStarted();

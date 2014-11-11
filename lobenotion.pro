@@ -4,5 +4,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = lobenotion
 TEMPLATE = subdirs
-SUBDIRS = guiApplication test
+SUBDIRS = guiApplication test \
+    octaveEmbedded
 
