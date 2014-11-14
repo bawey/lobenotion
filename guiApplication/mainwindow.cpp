@@ -15,19 +15,25 @@ MainWindow::MainWindow(QWidget *parent) :
     eegPlot=new EegPlotWidget();
     metaDataWidget = new EegMetaDataWidget();
     spellerCtlWidget= new SpellerControllerWidget();
-
+    sessionsWidget = new SessionsManagerWidget(master->getSessionsModel());
+    octaveWidget = new OctaveOutputWidget();
+    classifiersWidget = new ClassifiersManagerWidget();
 
     // Menus: File
     fileMenu=new QMenu();
     fileMenu->setTitle("File");
 
-    takeData=new QAction(QString("Take data"), fileMenu);
-    QObject::connect(takeData, SIGNAL(triggered()), this, SLOT(slotDataTaking()));
-    fileMenu->addAction(takeData);
+    actDashboard=new QAction("Dashboard", fileMenu);
+    QObject::connect(actDashboard, SIGNAL(triggered()), this, SLOT(slotDashboard()));
+    fileMenu->addAction(actDashboard);
 
-    dashboard=new QAction("Dashboard", fileMenu);
-    QObject::connect(dashboard, SIGNAL(triggered()), this, SLOT(slotDashboard()));
-    fileMenu->addAction(dashboard);
+    actTakeData=new QAction(QString("Take data"), fileMenu);
+    QObject::connect(actTakeData, SIGNAL(triggered()), this, SLOT(slotDataTaking()));
+    fileMenu->addAction(actTakeData);
+
+    actAnalyze = new QAction(QString("Analyze"), fileMenu);
+    QObject::connect(actAnalyze, SIGNAL(triggered()), this, SLOT(slotAnalyze()));
+    fileMenu->addAction(actAnalyze);
 
     menuBar()->addMenu(fileMenu);
 
@@ -35,9 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
     editMenu=new QMenu();
     editMenu->setTitle("Edit");
 
-    preferences=new QAction("Preferences", editMenu);
-    QObject::connect(preferences, SIGNAL(triggered()), this, SLOT(slotPreferences()));
-    editMenu->addAction(preferences);
+    actPreferences=new QAction("Preferences", editMenu);
+    QObject::connect(actPreferences, SIGNAL(triggered()), this, SLOT(slotPreferences()));
+    editMenu->addAction(actPreferences);
 
     menuBar()->addMenu(editMenu);
 
@@ -45,14 +51,14 @@ MainWindow::MainWindow(QWidget *parent) :
     helpMenu=new QMenu();
     helpMenu->setTitle("Help");
 
-    about=new QAction("About", helpMenu);
-    QObject::connect(about, SIGNAL(triggered()), this, SLOT(slotAbout()));
-    helpMenu->addAction(about);
+    actAbout=new QAction("About", helpMenu);
+    QObject::connect(actAbout, SIGNAL(triggered()), this, SLOT(slotAbout()));
+    helpMenu->addAction(actAbout);
 
     menuBar()->addMenu(helpMenu);
 
     // General stuff: title
-    this->setWindowTitle("Lobenotion 0.2");
+    this->setWindowTitle("Lobenotion 0.3");
 
     // Central widget
     this->setCentralWidget(new QWidget());
@@ -71,16 +77,22 @@ MainWindow::MainWindow(QWidget *parent) :
     stackLayout->addWidget(dashboardWidget);
 
     QWidget* spellerWrapperWidget = new QWidget();
-    spellerBox = new QHBoxLayout();
-
-    spellerWrapperWidget->setLayout(spellerBox);
+    spellerLayout = new QHBoxLayout();
+    spellerWrapperWidget->setLayout(spellerLayout);
     spellerWrapperWidget->layout()->addWidget(spellerWidget);
     spellerWrapperWidget->layout()->addWidget(spellerCtlWidget);
-
     stackLayout->addWidget(spellerWrapperWidget);
-    stackLayout->addWidget(new QLabel("3"));
-    stackLayout->addWidget(new QLabel("4"));
-    stackLayout->addWidget(new QLabel("5"));
+
+    analysisWidget = new QWidget();
+    analysisLayout = new QHBoxLayout();
+    analysisWidget->setLayout(analysisLayout);
+    analysisLayout->addWidget(sessionsWidget);
+    analysisLayout->addWidget(octaveWidget);
+    analysisLayout->addWidget(classifiersWidget);
+    stackLayout->addWidget(analysisWidget);
+
+    stackLayout->addWidget(new QLabel("4: Preferences?"));
+    stackLayout->addWidget(new QLabel("5: This program is..."));
 
     stackLayout->setCurrentIndex(1);
 
@@ -112,27 +124,34 @@ void MainWindow::connectSignalsToSlots(){
     // spellerController to mainWindow - prevent switching tabs
 }
 
-
-void MainWindow::slotDataTaking(){
-    /** disconnect dashboard from the signals it may receive **/
-    QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
-
-    /** connect DAQ widgets **/
-
-    /** switch panes **/
-    stackLayout->setCurrentIndex(1);
-}
-
 void MainWindow::slotDashboard(){
     QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
 
     stackLayout->setCurrentIndex(0);
 }
 
-void MainWindow::slotAbout(){
+void MainWindow::slotDataTaking(){
+    /** disconnect dashboard from the signals it may receive **/
+    QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+
+    /** connect DAQ widgets ... if any **/
+
+    /** switch panes **/
+    stackLayout->setCurrentIndex(1);
+}
+
+void MainWindow::slotAnalyze(){
+    /** disconnect dashboard from the signals it may receive **/
+    QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     stackLayout->setCurrentIndex(2);
 }
 
 void MainWindow::slotPreferences(){
     stackLayout->setCurrentIndex(3);
 }
+
+void MainWindow::slotAbout(){
+    stackLayout->setCurrentIndex(4);
+}
+
+

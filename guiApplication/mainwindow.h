@@ -21,6 +21,9 @@
 #include <eegdaq.h>
 #include <spellercontroller.h>
 #include <metaprocessor.h>
+#include <widgets/sessionsmanagerwidget.h>
+#include <widgets/octaveoutputwidget.h>
+#include <widgets/classifiersmanagerwidget.h>
 
 class MainWindow : public QMainWindow
 {
@@ -32,22 +35,28 @@ private:
     SpellerWidget* spellerWidget;
     SpellerControllerWidget* spellerCtlWidget;
     EegMetaDataWidget* metaDataWidget;
+    SessionsManagerWidget* sessionsWidget;
+    OctaveOutputWidget* octaveWidget;
+    ClassifiersManagerWidget* classifiersWidget;
 
     // LAYOUT COMPONENTS:
     QStackedLayout* stackLayout;
     QWidget* dashboardWidget;
     QHBoxLayout* dashboardLayout;
-    QHBoxLayout* spellerBox;
+    QHBoxLayout* spellerLayout;
+    QWidget* analysisWidget;
+    QHBoxLayout* analysisLayout;
 
     QMenu* fileMenu;
     QMenu* editMenu;
     QMenu* helpMenu;
 
     // MENU ACTIONS:
-    QAction* takeData;
-    QAction* dashboard;
-    QAction* preferences;
-    QAction* about;
+    QAction* actTakeData;
+    QAction* actDashboard;
+    QAction* actPreferences;
+    QAction* actAbout;
+    QAction* actAnalyze;
 
     // OTHER PROGRAM COMPONENTS:
     Master* master;
@@ -73,6 +82,7 @@ public slots:
     void slotDashboard();
     void slotAbout();
     void slotPreferences();
+    void slotAnalyze();
 };
 
 #endif // MAINWINDOW_H

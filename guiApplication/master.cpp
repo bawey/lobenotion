@@ -1,4 +1,5 @@
 #include "master.h"
+#include <QDebug>
 
 Master* Master::instance=NULL;
 QMutex Master::mutex;
@@ -25,6 +26,10 @@ Master::Master(QObject *parent) :
     metaProcessor->moveToThread(daq);
 
     spellerController = new SpellerController(daq, Settings::getSpellerMatrixSize(), Settings::getSpellerCharset());
+
+    sessionsModel = new SessionsModel;
+    qDebug()<<"sessions model created as "<<sessionsModel;
+    octaveProxy = new OctaveProxy();
 
     daq->start();
 

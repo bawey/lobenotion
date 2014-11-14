@@ -1,0 +1,15 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2014-11-10T21:38:44
+#
+#-------------------------------------------------
+
+QT       += core printsupport
+QT       -= gui
+
+TARGET = octaveEmbedded
+CONFIG   -= app_bundle
+
+TEMPLATE = lib
+
+include(../octaveEmbedded.pri)

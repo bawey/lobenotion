@@ -1,9 +1,10 @@
-QT       += core gui printsupport
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+#QT       += core gui printsupport
+#greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 
-TARGET = lobenotion
+#TARGET = lobenotion
 TEMPLATE = subdirs
-SUBDIRS = guiApplication test \
-    octaveEmbedded
+SUBDIRS += guiApplication test
 
+#this one would crawl the directories looking for the files required
+DEPENDPATH += /usr/share/octave-3.8.1

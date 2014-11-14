@@ -1,30 +1,11 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2014-11-10T21:38:44
-#
-#-------------------------------------------------
-
-QT       += core printsupport
-
-QT       -= gui
-
-TARGET = octaveEmbedded
-CONFIG   += console
-CONFIG   -= app_bundle
-
-TEMPLATE = app
-
-
-SOURCES += main.cpp \
-    octaveproxy.cpp
+SOURCES +=  $$PWD/octaveEmbedded/octaveproxy.cpp \
+            $$PWD/octaveEmbedded/p3sessioninfo.cpp
+HEADERS +=  $$PWD/octaveEmbedded/octaveproxy.h \
+            $$PWD/octaveEmbedded/p3sessioninfo.h
 
 #Modiffs - should be somehow automatically detected or so...
 INCLUDEPATH += /usr/include/octave-3.8.1/ /usr/include/octave-3.8.1/octave
 
-#this one would crawl the directories looking for the files required
-#DEPENDPATH
-
-#QMAKE_CXX=mkoctfile
 LIBS += -L/usr/local/lib
 LIBS += -L/opt/local/lib
 LIBS += -L/usr/lib64
@@ -58,6 +39,3 @@ copy_scripts.commands += rm $$OUT_PWD/scripts -rf;
 copy_scripts.commands += cp /home/bawey/Forge/p300-octave $$OUT_PWD/scripts -r;
 QMAKE_EXTRA_TARGETS += copy_scripts
 POST_TARGETDEPS += copy_scripts
-
-HEADERS += \
-    octaveproxy.h

@@ -12,6 +12,8 @@
 #include <QThread>
 #include <timer.h>
 #include <settings.h>
+#include <sessionsmodel.h>
+#include <octaveEmbedded/octaveproxy.h>
 
 /**
  * @brief The Master class
@@ -38,6 +40,14 @@ public:
         return spellerController;
     }
 
+    SessionsModel* getSessionsModel() const{
+        return sessionsModel;
+    }
+
+    OctaveProxy* getOctaveProxy(){
+        return octaveProxy;
+    }
+
     void doGlobalInitialization(){
         qsrand((uint)QTime::currentTime().msec());
         Timer::start();
@@ -52,6 +62,8 @@ private:
 
     MetaProcessor* metaProcessor;
     SpellerController* spellerController;
+    SessionsModel* sessionsModel;
+    OctaveProxy* octaveProxy;
 
     void connectModules();
 
