@@ -1,4 +1,4 @@
-QT       += core gui printsupport
+QT       += core gui printsupport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,7 +16,7 @@ SOURCES += main.cpp \
     widgets/eegplotwidget.cpp \
     widgets/sessionsmanagerwidget.cpp \
     widgets/octaveoutputwidget.cpp \
-    widgets/classifiersmanagerwidget.cpp
+    widgets/classifiersmanagerwidget.cpp \
 
 HEADERS += \
     widgets/eegmetadatawidget.h \
@@ -26,7 +26,7 @@ HEADERS += \
     widgets/eegplotwidget.h \
     widgets/sessionsmanagerwidget.h \
     widgets/octaveoutputwidget.h \
-    widgets/classifiersmanagerwidget.h
+    widgets/classifiersmanagerwidget.h \
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 

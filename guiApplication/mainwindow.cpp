@@ -122,6 +122,8 @@ void MainWindow::connectSignalsToSlots(){
     //connect(spellerCtl, SIGNAL(), spellerWidget, SLOT());
 
     // spellerController to mainWindow - prevent switching tabs
+
+    connect(master->getOctaveProxy(), SIGNAL(signalFetchedOutput(QString)), octaveWidget, SLOT(slotOctaveOutput(QString)));
 }
 
 void MainWindow::slotDashboard(){

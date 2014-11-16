@@ -19,7 +19,10 @@ SOURCES += $$PWD/guiApplication/qemokitd.cpp \
     $$PWD/guiApplication/spellerdumper.cpp \
     $$PWD/guiApplication/spellercontroller.cpp \
     $$PWD/guiApplication/master.cpp \
-    $$PWD/guiApplication/sessionsmodel.cpp
+    $$PWD/guiApplication/sessionsmodel.cpp \
+    $$PWD/guiApplication/classifiersmodel.cpp \
+    $$PWD/octaveEmbedded/octaveoutputreader.cpp
+
 
 
 HEADERS += $$PWD/guiApplication/qemokitd.h \
@@ -36,7 +39,9 @@ HEADERS += $$PWD/guiApplication/qemokitd.h \
     $$PWD/guiApplication/spellerdumper.h \
     $$PWD/guiApplication/spellercontroller.h \
     $$PWD/guiApplication/master.h \
-    $$PWD/guiApplication/sessionsmodel.h
+    $$PWD/guiApplication/sessionsmodel.h \
+    $$PWD/guiApplication/classifiersmodel.h \
+    $$PWD/octaveEmbedded/octaveoutputreader.h
 
 FORMS    +=
 

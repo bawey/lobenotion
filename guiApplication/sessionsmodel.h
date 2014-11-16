@@ -17,7 +17,18 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
+
+    QList<const P3SessionInfo*>* getSessionsAt(QList<unsigned short> positions) const {
+        QList<const P3SessionInfo* >* list = new QList<const P3SessionInfo*>();
+        foreach (unsigned short pos, positions) {
+            list->append(sessions.at(pos));
+        }
+        return list;
+    }
+
 signals:
+
+
 
 public slots:
     void slotLoadSession(QString dirpath, QString subject, unsigned short number);

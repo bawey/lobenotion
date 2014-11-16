@@ -13,6 +13,7 @@
 #include <timer.h>
 #include <settings.h>
 #include <sessionsmodel.h>
+#include <classifiersmodel.h>
 #include <octaveEmbedded/octaveproxy.h>
 
 /**
@@ -44,6 +45,10 @@ public:
         return sessionsModel;
     }
 
+    ClassifiersModel* getClassifiersModel() const{
+        return classifiersModel;
+    }
+
     OctaveProxy* getOctaveProxy(){
         return octaveProxy;
     }
@@ -63,6 +68,7 @@ private:
     MetaProcessor* metaProcessor;
     SpellerController* spellerController;
     SessionsModel* sessionsModel;
+    ClassifiersModel* classifiersModel;
     OctaveProxy* octaveProxy;
 
     void connectModules();

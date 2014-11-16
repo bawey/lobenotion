@@ -5,6 +5,8 @@
 #include <sessionsmodel.h>
 #include <QHeaderView>
 #include <QModelIndexList>
+#include <QtConcurrent/QtConcurrent>
+#include <master.h>
 
 SessionsManagerWidget::SessionsManagerWidget(QAbstractTableModel *model, QWidget *parent) :
     QGroupBox("Loaded sessions", parent)
@@ -44,6 +46,7 @@ SessionsManagerWidget::SessionsManagerWidget(QAbstractTableModel *model, QWidget
 
     this->setLayout(topLayout);
     connectInternalSignals();
+    this->slotAdaptButtonsStateToSelection();
 }
 
 void SessionsManagerWidget::connectInternalSignals(){
@@ -53,7 +56,7 @@ void SessionsManagerWidget::connectInternalSignals(){
     connect(buttonDrop, SIGNAL(clicked()), this, SLOT(slotDropPressed()));
 
     //finish tomorrow - enable, disable buttons depending on that...
-    connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection))
+    connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(slotAdaptButtonsStateToSelection()));
 
     qDebug()<<"For now, test button will populate the model with some dummy data";
 
@@ -74,11 +77,20 @@ void SessionsManagerWidget::slotLoadPressed(){
     foreach (QString filename, uniqueNameRoots) {
         qDebug()<<"chosen: "<<filename<<"from dir: "<<dirpath;
     }
-    ((SessionsModel*) tableView->model())->slotLoadSession(uniqueNameRoots);
+    QtConcurrent::run((SessionsModel*) tableView->model(), &SessionsModel::slotLoadSession, uniqueNameRoots);
 }
 
 void SessionsManagerWidget::slotTrainPressed(){
     QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
+    QList<unsigned short> positions;
+    foreach(QModelIndex index, selectionList){
+        positions.append((unsigned short)index.row());
+    }
+    QList<const P3SessionInfo*>* sessionsInfo = ((SessionsModel*)tableView->model())->getSessionsAt(positions);
+    /** ClassifiersModel needs a corresponding slot and a connection needs to be made! **/
+
+    QtConcurrent::run(Master::getInstance()->getClassifiersModel(), &ClassifiersModel::slotTrainModel, *sessionsInfo, true);
+
 }
 
 void SessionsManagerWidget::slotTestPressed(){
@@ -87,4 +99,19 @@ void SessionsManagerWidget::slotTestPressed(){
 
 void SessionsManagerWidget::slotDropPressed(){
     QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
+}
+
+void SessionsManagerWidget::slotAdaptButtonsStateToSelection(){
+
+    QModelIndexList selectedRows = tableView->selectionModel()->selectedRows();
+
+    foreach(QModelIndex index, selectedRows){
+        qDebug()<<"selected row: "<<index.row();
+    }
+
+    bool anyselected = selectedRows.length()>0;
+    buttonTrain->setEnabled(anyselected);
+    buttonTest->setEnabled(anyselected);
+    buttonDrop->setEnabled(anyselected);
+
 }

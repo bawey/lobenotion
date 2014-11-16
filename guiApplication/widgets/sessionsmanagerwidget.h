@@ -9,6 +9,8 @@
 #include <QHBoxLayout>
 #include <QButtonGroup>
 #include <QPushButton>
+#include <QList>
+#include <octaveEmbedded/p3sessioninfo.h>
 
 class SessionsManagerWidget : public QGroupBox
 {
@@ -18,12 +20,17 @@ public:
 
 signals:
 
+    void signalTrainModel(QList<const P3SessionInfo*>);
+
 public slots:
     void slotLoadPressed();
     void slotTrainPressed();
     void slotTestPressed();
     void slotDropPressed();
 
+private slots:
+    void slotAdaptButtonsStateToSelection();
+    
 private:
    QVBoxLayout* topLayout;
    QHBoxLayout* buttonsLayout;

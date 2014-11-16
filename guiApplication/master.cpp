@@ -27,8 +27,9 @@ Master::Master(QObject *parent) :
 
     spellerController = new SpellerController(daq, Settings::getSpellerMatrixSize(), Settings::getSpellerCharset());
 
-    sessionsModel = new SessionsModel;
-    qDebug()<<"sessions model created as "<<sessionsModel;
+    sessionsModel = new SessionsModel();
+    classifiersModel = new ClassifiersModel();
+
     octaveProxy = new OctaveProxy();
 
     daq->start();

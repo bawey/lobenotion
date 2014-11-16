@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QGroupBox>
+#include <QString>
+#include <QPlainTextEdit>
 
 class OctaveOutputWidget : public QGroupBox
 {
@@ -13,7 +15,10 @@ public:
 signals:
 
 public slots:
+    void slotOctaveOutput(QString output);
 
+private:
+    QPlainTextEdit textEdit;
 };
 
 #endif // OCTAVEOUTPUTWIDGET_H

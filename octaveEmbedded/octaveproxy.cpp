@@ -1,6 +1,9 @@
 #include "octaveproxy.h"
 #include "QTextStream"
 #include "iostream"
+#include <QTime>
+#include <QTimer>
+#include <QProcess>
 
 OctaveProxy::OctaveProxy(QObject *parent) :
     QObject(parent)
@@ -12,6 +15,50 @@ OctaveProxy::OctaveProxy(QObject *parent) :
     feval("addpath", octave_value_list("scripts"));
     feval("cd", octave_value_list("scripts"));
     feval("init");
+
+
+//    QString serverName = QString("/tmp/qlobesocket_%1").arg(QTime::currentTime().toString());
+    QString serverName = QString("/tmp/qlobesocket");
+    qDebug()<<"Server name: "<<serverName;
+
+    connect(&socket, SIGNAL(connected()), this, SLOT(slotSocketConnected()));
+    connect(&socket, SIGNAL(bytesWritten(qint64)), this, SLOT(slotBytesWritten(qint64)));
+
+
+
+    octave_value_list redirectArgs(1);
+    redirectArgs(0)=serverName.toStdString();
+
+    QProcess process;
+    process.start("rm", QStringList() << serverName);
+    process.waitForFinished();
+
+    QProcess process2;
+    process2.start("mkfifo", QStringList() << serverName << "-m" << "777");
+    process2.waitForFinished();
+
+    socket.setServerName(serverName);
+    socket.open();
+
+    outputReader = new OctaveOutputReader(serverName);
+    connect(&outputThread, SIGNAL(started()), outputReader, SLOT(startReadingFifo()));
+    outputReader->moveToThread(&outputThread);
+
+    outputThread.start();
+    feval("redirectOutput", redirectArgs);
+
+    // just a test
+//    QTimer* timer = new QTimer();
+//    timer->setInterval(20000);
+//    connect(timer, SIGNAL(timeout()), this, SLOT(slotSocketReadout()));
+//    timer->start();
+
+    qDebug()<<"Socket error: "<<socket.errorString();
+
+    connect(outputReader, SIGNAL(signalFetchedOutput(QString)), this, SLOT(slotFetchedOctaveOutput(QString)));
+
+
+    process.waitForFinished();
 
 }
 
@@ -119,6 +166,22 @@ void OctaveProxy::pickBestModel(QString dirpath, QString subject, QList<unsigned
     this->tr_std=results(2);
 }
 
+octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
+
+    octave_value_list args(2);
+    octave_value_list merged(1);
+    merged(0)=infos.at(0)->getSession();
+    if(infos.length()>1){
+        for(int i=1; i<infos.length(); ++i){
+            args(0)=merged(0);
+            args(1)=infos.at(i)->getSession();
+            merged = feval("P3SessionMerge", args);
+        }
+    }
+    qDebug()<<"embarking on classifier training";
+    octave_value_list results = feval("pickClassifier", merged);
+    return results(0);
+}
 
 octave_value_list OctaveProxy::loadSessions(QStringList nameRoots){
     return loadSessions("", nameRoots);

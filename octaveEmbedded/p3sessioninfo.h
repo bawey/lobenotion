@@ -17,23 +17,23 @@ class P3SessionInfo
 public:
     P3SessionInfo(QString subject, QString spelledPhrase, bool clean, QDateTime fileCreationTime, octave_value octaveSession);
 
-    const QString& getSubjectName(){
+    const QString& getSubjectName() const{
         return subjectName;
     }
 
-    const QString& getPhrase(){
+    const QString& getPhrase() const{
         return phrase;
     }
 
-    octave_value getSession(){
+    octave_value getSession() const{
         return loadedSession;
     }
 
-    bool isClean(){
+    bool isClean() const{
         return clean;
     }
 
-    QDateTime getCreated(){
+    QDateTime getCreated() const {
         return created;
     }
 

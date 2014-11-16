@@ -15,7 +15,7 @@ SessionsModel::SessionsModel(QObject *parent) :
 
 
 int SessionsModel::rowCount(const QModelIndex &parent) const{
-    qDebug()<<"reporting "<<sessions.length()<<" rows in the model";
+//    qDebug()<<"reporting "<<sessions.length()<<" rows in the model";
     return sessions.length();
 }
 
@@ -24,7 +24,7 @@ int SessionsModel::columnCount(const QModelIndex &parent) const{
 }
 
 QVariant SessionsModel::data(const QModelIndex &index, int role) const{
-    qDebug()<<"about to divulge data model's secrets";
+//    qDebug()<<"about to divulge data model's secrets";
     if(role==Qt::DisplayRole){
         P3SessionInfo* record = sessions.at(index.row());
         switch(index.column()){
@@ -45,7 +45,7 @@ QVariant SessionsModel::data(const QModelIndex &index, int role) const{
 
 QVariant SessionsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    qDebug()<<"about to inform on header's structure";
+//    qDebug()<<"about to inform on header's structure";
     if (role == Qt::DisplayRole)
     {
         if (orientation == Qt::Horizontal) {
