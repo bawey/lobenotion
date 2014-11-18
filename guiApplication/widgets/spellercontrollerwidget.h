@@ -8,6 +8,8 @@
 #include <QLineEdit>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QComboBox>
+#include <QStackedLayout>
 
 class SpellerControllerWidget : public QWidget
 {
@@ -23,10 +25,15 @@ private:
     // container for all the experiment parameters passed from the controller
     QFormLayout* formLayout;
     QWidget* form;
-    // speller parameters
+    // offline speller parameters
     QLineEdit* spellPhrase;
     QLineEdit* parentDir;
     QLineEdit* subjectName;
+    // online speller parameters
+    QSpinBox* phraseLength;
+    QComboBox* classifierCombo;
+
+    QStackedLayout* modeStack;
 
     QSpinBox* highlightDuration;
     QSpinBox* dimDuration;
@@ -42,6 +49,9 @@ signals:
     void signalDataTakingStart(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
                                QString subjectName, QString parentDirectory);
     void signalDataTakingEnd();
+
+    void signalOnlineModeStart(int charactersLimit, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration);
+    void signalOnlineModeEnd();
 public slots:
     void slotSignalFine(bool);
     void slotDataTakingStarted();
@@ -50,6 +60,8 @@ public slots:
     // to handle the buttons
     void slotButtonPressedStart();
     void slotButtonPressedFinish();
+    void switchOnline();
+    void switchOffline();
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H

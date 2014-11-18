@@ -17,48 +17,50 @@ ClassifiersModel::ClassifiersModel(QObject *parent) :
  * @brief ClassifiersModel::slotTrainModel
  * @param infos
  */
-void ClassifiersModel::slotTrainModel(QList<const P3SessionInfo*> infos, bool deleteInfos){
-    qDebug()<<"signal received to train a model... panicking!";
-
+void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>> sharedInfos){
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
-    //1: need to merge the sessions into one!
-    //2: need to launch training procedure for that session
-    //3: need to store the best classfier
-    octave_value classifier = proxy->pickBestModel(infos);
-    //4: would be not bad to retrieve classifiers properties and store them in this->classifiers
-    ClassifierDescriptor* desc = new ClassifierDescriptor();
 
-    QString subjects = "";
-    QString paramsters="undetermined";
+    ClassifierDescriptor* desc = new ClassifierDescriptor();
+    octave_value classifier = proxy->pickBestModel(*sharedInfos, desc);
+
+
+    QString subjects = sharedInfos->at(0)->getSubjectName();
+
     unsigned short charsCount = 0;
 
-    foreach (const P3SessionInfo* info, infos) {
+    foreach (const P3SessionInfo* info, *sharedInfos) {
         charsCount+=info->getPhrase().length();
-        if(!subjects.contains(info->getSubjectName())){
+        if(!subjects.contains(info->getSubjectName().trimmed())){
             if(subjects.length()>=0){
-                subjects.append(', ');
+                subjects.append(", ");
             }
-            subjects.append(info->getSubjectName());
+//            qDebug()<<"subjects was: "<<subjects;
+            subjects.append(info->getSubjectName().trimmed());
+//            qDebug()<<"subjects is: "<<subjects;
+//            qDebug()<<"info->subjectName is: "<<info->getSubjectName().trimmed();
         }
     }
 
     desc->charsCount=charsCount;
-    desc->parameters=paramsters;
     desc->subject=subjects;
-    desc->classifier=classifier;
 
     beginInsertRows(QModelIndex(), classifiers.length(), classifiers.length());
     this->classifiers.append(desc);
     endInsertRows();
-    if(deleteInfos){
-        delete infos;
-    }
+}
+
+void ClassifiersModel::slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
+    ClassifierDescriptor *desc = classifiers.at(index);
+    OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
+    proxy->askClassifier(desc, *testSessionInfos);
 }
 
 int ClassifiersModel::rowCount(const QModelIndex & parent) const{
+    if(parent.isValid()){}
     return classifiers.length();
 }
 int ClassifiersModel::columnCount(const QModelIndex &parent) const{
+    if(parent.isValid()){}
     return 3;
 }
 QVariant ClassifiersModel::data(const QModelIndex &index, int role) const {
@@ -95,4 +97,16 @@ QVariant ClassifiersModel::headerData(int section, Qt::Orientation orientation, 
         }
     }
     return QVariant();
+}
+
+void ClassifiersModel::slotSetCurrentClassifier(int classifierToBe){
+    if(classifierToBe<this->classifiers.length()){
+        qDebug()<<"changing current classifier from: "<<this->currentClassifier
+                  <<" to: "<<classifierToBe;
+        this->currentClassifier=classifierToBe;
+        emit signalCurrentClassifierChanged(currentClassifier);
+    }else{
+        qWarning()<<"Attempted to set the current classifier as "<<classifierToBe<<" with only "
+                 <<classifiers.length()<<" available!";
+    }
 }

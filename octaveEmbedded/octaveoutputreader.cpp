@@ -15,7 +15,7 @@ void OctaveOutputReader::startReadingFifo(){
     QDebug qdb = qDebug();
 
     int num, fifo;
-    char temp[256];
+    char temp[512];
     if ((fifo = open(this->inputPath.toStdString().c_str(), O_RDONLY)) < 0) {
         qWarning()<<strerror(errno);
         return;
@@ -40,7 +40,6 @@ void OctaveOutputReader::startReadingFifo(){
 //        readout = readout.replace(QChar::LineFeed, 'F');
 //        readout = readout.replace(QChar::CarriageReturn, 'C');
 //        readout = readout.replace(QChar::LineSeparator, 'S');
-        qDebug()<<readout;
         emit signalFetchedOutput(readout);
     }
     close(fifo);

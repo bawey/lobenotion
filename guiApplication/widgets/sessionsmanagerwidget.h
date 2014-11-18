@@ -20,7 +20,7 @@ public:
 
 signals:
 
-    void signalTrainModel(QList<const P3SessionInfo*>);
+    void signalTestModel(QSharedPointer<QList<const P3SessionInfo*>>);
 
 public slots:
     void slotLoadPressed();

@@ -4,6 +4,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QProcess>
+#include <classifiersmodel.h>
 
 OctaveProxy::OctaveProxy(QObject *parent) :
     QObject(parent)
@@ -16,15 +17,8 @@ OctaveProxy::OctaveProxy(QObject *parent) :
     feval("cd", octave_value_list("scripts"));
     feval("init");
 
-
-//    QString serverName = QString("/tmp/qlobesocket_%1").arg(QTime::currentTime().toString());
     QString serverName = QString("/tmp/qlobesocket");
     qDebug()<<"Server name: "<<serverName;
-
-    connect(&socket, SIGNAL(connected()), this, SLOT(slotSocketConnected()));
-    connect(&socket, SIGNAL(bytesWritten(qint64)), this, SLOT(slotBytesWritten(qint64)));
-
-
 
     octave_value_list redirectArgs(1);
     redirectArgs(0)=serverName.toStdString();
@@ -37,29 +31,15 @@ OctaveProxy::OctaveProxy(QObject *parent) :
     process2.start("mkfifo", QStringList() << serverName << "-m" << "777");
     process2.waitForFinished();
 
-    socket.setServerName(serverName);
-    socket.open();
-
     outputReader = new OctaveOutputReader(serverName);
     connect(&outputThread, SIGNAL(started()), outputReader, SLOT(startReadingFifo()));
     outputReader->moveToThread(&outputThread);
 
     outputThread.start();
+
     feval("redirectOutput", redirectArgs);
 
-    // just a test
-//    QTimer* timer = new QTimer();
-//    timer->setInterval(20000);
-//    connect(timer, SIGNAL(timeout()), this, SLOT(slotSocketReadout()));
-//    timer->start();
-
-    qDebug()<<"Socket error: "<<socket.errorString();
-
     connect(outputReader, SIGNAL(signalFetchedOutput(QString)), this, SLOT(slotFetchedOctaveOutput(QString)));
-
-
-    process.waitForFinished();
-
 }
 
 OctaveProxy::~OctaveProxy(){
@@ -166,7 +146,34 @@ void OctaveProxy::pickBestModel(QString dirpath, QString subject, QList<unsigned
     this->tr_std=results(2);
 }
 
-octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
+void OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor *modelDesc, QList<const P3SessionInfo *> infos){
+    octave_value testSession = mergedSession(infos);
+    octave_value_list classifier_params(4);
+
+    classifier_params(0)=modelDesc->classifier;
+    classifier_params(1)=testSession;
+    classifier_params(2)=modelDesc->tdMean;
+    classifier_params(3)=modelDesc->tdStd;
+
+    octave_value_list classified = feval("askClassifier", classifier_params);
+}
+
+octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> infos){
+    octave_value_list args(2);
+    octave_value_list merged(1);
+    merged(0)=infos.at(0)->getSession();
+    if(infos.length()>1){
+        for(int i=1; i<infos.length(); ++i){
+            args(0)=merged(0);
+            args(1)=infos.at(i)->getSession();
+            merged = feval("P3SessionMerge", args);
+        }
+    }
+    return merged(0);
+}
+
+octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos,
+                                        ClassifiersModel::ClassifierDescriptor* desc){
 
     octave_value_list args(2);
     octave_value_list merged(1);
@@ -180,6 +187,14 @@ octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
     }
     qDebug()<<"embarking on classifier training";
     octave_value_list results = feval("pickClassifier", merged);
+
+    /** prefill the descriptor **/
+    desc->classifier=results(0);
+    desc->tdMean=results(1);
+    desc->tdStd=results(2);
+    std::string classifierString = feval("stringify", octave_value_list(results(3)))(0).string_value();
+    desc -> parameters = QString::fromStdString(classifierString);
+
     return results(0);
 }
 

@@ -35,6 +35,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(actAnalyze, SIGNAL(triggered()), this, SLOT(slotAnalyze()));
     fileMenu->addAction(actAnalyze);
 
+    /**
+      TODO: Temporary section to leapfrog into online - delete
+    **/
+    QAction* onlineShortcut = new QAction("Online", fileMenu);
+    connect(onlineShortcut, SIGNAL(triggered()), this, SLOT(slotOnlineUse()));
+    fileMenu->addAction(onlineShortcut);
+
     menuBar()->addMenu(fileMenu);
 
     // Menus: Edit
@@ -87,8 +94,8 @@ MainWindow::MainWindow(QWidget *parent) :
     analysisLayout = new QHBoxLayout();
     analysisWidget->setLayout(analysisLayout);
     analysisLayout->addWidget(sessionsWidget);
-    analysisLayout->addWidget(octaveWidget);
     analysisLayout->addWidget(classifiersWidget);
+    analysisLayout->addWidget(octaveWidget);
     stackLayout->addWidget(analysisWidget);
 
     stackLayout->addWidget(new QLabel("4: Preferences?"));
@@ -109,8 +116,12 @@ void MainWindow::connectSignalsToSlots(){
     // spellerCtlWidget and spellerController - permanent connections
     connect(spellerCtlWidget, SIGNAL(signalDataTakingStart(QString,int,int,int,int,int,QString,QString)), spellerCtl, SLOT(startDataTaking(QString,int,int,int,int,int,QString,QString)));
     connect(spellerCtlWidget, SIGNAL(signalDataTakingEnd()), spellerCtl, SLOT(endDataTaking()));
+    connect(spellerCtlWidget, SIGNAL(signalOnlineModeStart(int,int,int,int,int,int)), spellerCtl, SLOT(startOnline(int,int,int,int,int,int)));
+    connect(spellerCtlWidget, SIGNAL(signalOnlineModeEnd()), spellerCtl, SLOT(endOnline()));
     connect(spellerCtl, SIGNAL(dataTakingStarted(dataTakingParams*)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
     connect(spellerCtl, SIGNAL(dataTakingEnded()), spellerCtlWidget, SLOT(slotDataTakingFinished()));
+
+
     connect(spellerCtl, SIGNAL(error(unsigned char)), spellerCtlWidget, SLOT(slotSpellerError(unsigned char)));
     // spellerCtlWidget needs also some notion of signal quality from MetaProcessor
     connect(metaProcessor, SIGNAL(signalFine(bool)), spellerCtlWidget, SLOT(slotSignalFine(bool)));
@@ -124,6 +135,13 @@ void MainWindow::connectSignalsToSlots(){
     // spellerController to mainWindow - prevent switching tabs
 
     connect(master->getOctaveProxy(), SIGNAL(signalFetchedOutput(QString)), octaveWidget, SLOT(slotOctaveOutput(QString)));
+
+    //Passing sessions as test material: sessions manager widget -> classifiers manager widget
+    connect(sessionsWidget, SIGNAL(signalTestModel(QSharedPointer<QList<const P3SessionInfo*> >)), classifiersWidget,
+            SLOT(slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo*> >)));
+
+    //Launching online mode from classifiers management panel
+    connect(classifiersWidget, SIGNAL(signalGoOnline()), this, SLOT(slotOnlineUse()));
 }
 
 void MainWindow::slotDashboard(){
@@ -132,7 +150,7 @@ void MainWindow::slotDashboard(){
     stackLayout->setCurrentIndex(0);
 }
 
-void MainWindow::slotDataTaking(){
+void MainWindow::prologDataTakingOrOnline(){
     /** disconnect dashboard from the signals it may receive **/
     QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
 
@@ -140,6 +158,16 @@ void MainWindow::slotDataTaking(){
 
     /** switch panes **/
     stackLayout->setCurrentIndex(1);
+}
+
+void MainWindow::slotDataTaking(){
+    prologDataTakingOrOnline();
+    spellerCtlWidget->switchOffline();
+}
+
+void MainWindow::slotOnlineUse(){
+    prologDataTakingOrOnline();
+    spellerCtlWidget->switchOnline();
 }
 
 void MainWindow::slotAnalyze(){

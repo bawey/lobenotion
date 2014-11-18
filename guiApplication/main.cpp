@@ -14,7 +14,7 @@ needs to start modules:
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    Master* m = Master::getInstance();
+    Master::getInstance();
 
     /** high refactoring potential **/
     MainWindow* mainWindow = new MainWindow();

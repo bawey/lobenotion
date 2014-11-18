@@ -19,7 +19,7 @@ protected:
     bool _shutdown=false;
 public:
     EegDaq();
-    QWaitCondition* const getFrameEmittedWaitCondition() const;
+    QWaitCondition* getFrameEmittedWaitCondition() const;
 signals:
     void eegFrame(QSharedPointer<EegFrame> eegFrame);
     void metaFrame(QSharedPointer<MetaFrame> metaFrame);

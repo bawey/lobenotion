@@ -7,6 +7,7 @@
 #include <QModelIndexList>
 #include <QtConcurrent/QtConcurrent>
 #include <master.h>
+#include <QSharedPointer>
 
 SessionsManagerWidget::SessionsManagerWidget(QAbstractTableModel *model, QWidget *parent) :
     QGroupBox("Loaded sessions", parent)
@@ -19,9 +20,9 @@ SessionsManagerWidget::SessionsManagerWidget(QAbstractTableModel *model, QWidget
     buttonsGroup = new QButtonGroup();
 
     buttonLoad=new QPushButton("Load");
-    buttonTrain=new QPushButton("Train on selected");
-    buttonTest=new QPushButton("Test on selected");
-    buttonDrop=new QPushButton("Drop selected");
+    buttonTrain=new QPushButton("Train");
+    buttonTest=new QPushButton("Test");
+    buttonDrop=new QPushButton("Drop");
 
 
     topLayout->addWidget(tableView);
@@ -47,6 +48,7 @@ SessionsManagerWidget::SessionsManagerWidget(QAbstractTableModel *model, QWidget
     this->setLayout(topLayout);
     connectInternalSignals();
     this->slotAdaptButtonsStateToSelection();
+    qRegisterMetaType<QSharedPointer<QList<const P3SessionInfo*>>>("QSharedPointer<QList<const P3SessionInfo*>>");
 }
 
 void SessionsManagerWidget::connectInternalSignals(){
@@ -81,24 +83,36 @@ void SessionsManagerWidget::slotLoadPressed(){
 }
 
 void SessionsManagerWidget::slotTrainPressed(){
+    //TODO: move into some private helper method
     QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
     QList<unsigned short> positions;
     foreach(QModelIndex index, selectionList){
         positions.append((unsigned short)index.row());
     }
     QList<const P3SessionInfo*>* sessionsInfo = ((SessionsModel*)tableView->model())->getSessionsAt(positions);
-    /** ClassifiersModel needs a corresponding slot and a connection needs to be made! **/
+    QSharedPointer<QList<const P3SessionInfo*>> sessionsSharedInfo = QSharedPointer<QList<const P3SessionInfo*>>(sessionsInfo);
+    //EOTODO
 
-    QtConcurrent::run(Master::getInstance()->getClassifiersModel(), &ClassifiersModel::slotTrainModel, *sessionsInfo, true);
 
+    QtConcurrent::run(Master::getInstance()->getClassifiersModel(), &ClassifiersModel::slotTrainModel, sessionsSharedInfo);
 }
 
 void SessionsManagerWidget::slotTestPressed(){
+    //TODO: move into some private helper method
     QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
+    QList<unsigned short> positions;
+    foreach(QModelIndex index, selectionList){
+        positions.append((unsigned short)index.row());
+    }
+    QList<const P3SessionInfo*>* sessionsInfo = ((SessionsModel*)tableView->model())->getSessionsAt(positions);
+    QSharedPointer<QList<const P3SessionInfo*>> sessionsSharedInfo = QSharedPointer<QList<const P3SessionInfo*>>(sessionsInfo);
+    //EOTODO
+    emit signalTestModel(sessionsSharedInfo);
+
 }
 
 void SessionsManagerWidget::slotDropPressed(){
-    QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
+
 }
 
 void SessionsManagerWidget::slotAdaptButtonsStateToSelection(){

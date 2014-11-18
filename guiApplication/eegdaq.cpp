@@ -15,6 +15,6 @@ void EegDaq::shutdown(){
     _shutdown=true;
 }
 
-QWaitCondition* const EegDaq::getFrameEmittedWaitCondition() const{
+QWaitCondition *EegDaq::getFrameEmittedWaitCondition() const{
     return frameEmitted;
 }

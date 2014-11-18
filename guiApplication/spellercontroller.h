@@ -28,6 +28,8 @@ class SpellerDumper;
  */
 
 struct dataTakingParams{
+    bool isOnline=false;
+    unsigned int symbolsLimit=0;
     unsigned int stintHighlight;
     unsigned int stintDim;
     unsigned int stintInfo;
@@ -47,6 +49,7 @@ public:
     constexpr static unsigned char ERRCODE_PARAMETERS = 1;
     constexpr static unsigned char ERRCODE_SIGNAL = 2;
     constexpr static unsigned char ERRCODE_ABORTED = 4;
+    constexpr static unsigned char ERRCODE_PHRASE = 8;
 
     explicit SpellerController(EegDaq* daq, unsigned short int matrixSize, QString characters, QObject *parent = 0);
     virtual ~SpellerController();
@@ -130,6 +133,9 @@ signals:
     void dataTakingStarted(dataTakingParams* params);
     void dataTakingEnded();
 
+    void onlineModeStarted();
+    void onlineModeEnded();
+
     void onlineStarted();
     void onlineEnded();
 
@@ -149,7 +155,8 @@ public slots:
                          QString subjectName="DefaultSubject", QString parentDirectory=QDir::tempPath()+"/eeg.dumps/");
     void endDataTaking();
 
-    void startOnline(int epochsPerStimuli, int interStimulusInterval, int highlightDuration, int infoDuration);
+    void startOnline(int charactersLimit, int epochsPerStimulus, int interStimulusInterval,
+                     int interPeriodInterval, int highlightDuration, int infoDuration);
     void endOnline();
 
     void terminate(){

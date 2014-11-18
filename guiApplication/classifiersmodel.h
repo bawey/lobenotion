@@ -15,11 +15,14 @@ class ClassifiersModel : public QAbstractTableModel
 {
     Q_OBJECT
 
+public:
     struct ClassifierDescriptor{
         QString subject;
         QString parameters;
         unsigned short charsCount;
         octave_value classifier;
+        octave_value tdMean;
+        octave_value tdStd;
     };
 
 public:
@@ -32,11 +35,16 @@ public:
 
 signals:
 
+    void signalCurrentClassifierChanged(int);
 public slots:
-    void slotTrainModel(QList<const P3SessionInfo*>);
+    void slotTrainModel(QSharedPointer<QList<const P3SessionInfo *> > sharedInfos);
+    void slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testData);
+    void slotSetCurrentClassifier(int);
+
 
 private:
     QList<ClassifierDescriptor*> classifiers;
+    int currentClassifier=0;
 };
 
 #endif // CLASSIFIERSMODEL_H

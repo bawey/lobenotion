@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QFileInfo>
+#include <spellerdumper.h>
 
 SessionsModel::SessionsModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -15,16 +16,16 @@ SessionsModel::SessionsModel(QObject *parent) :
 
 
 int SessionsModel::rowCount(const QModelIndex &parent) const{
-//    qDebug()<<"reporting "<<sessions.length()<<" rows in the model";
+    if(parent.isValid()){}
     return sessions.length();
 }
 
 int SessionsModel::columnCount(const QModelIndex &parent) const{
+    if(parent.isValid()){}
     return 4;
 }
 
 QVariant SessionsModel::data(const QModelIndex &index, int role) const{
-//    qDebug()<<"about to divulge data model's secrets";
     if(role==Qt::DisplayRole){
         P3SessionInfo* record = sessions.at(index.row());
         switch(index.column()){
@@ -45,7 +46,6 @@ QVariant SessionsModel::data(const QModelIndex &index, int role) const{
 
 QVariant SessionsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-//    qDebug()<<"about to inform on header's structure";
     if (role == Qt::DisplayRole)
     {
         if (orientation == Qt::Horizontal) {
@@ -114,14 +114,14 @@ bool SessionsModel::parseSummaryFile(QString path, QString& subject, QString& ph
         QTextStream in(&file);
         QString line;
         while((line = in.readLine())!=NULL){
-            qDebug()<<"I read this: "<<line<<"from summary";
+//          qDebug()<<"I read this: "<<line<<"from summary";
             QStringList tokens = line.split(':');
             if(tokens.length()==2){
                 if(tokens.at(0).trimmed().toLower()=="subject"){
                     subject = tokens.at(1).trimmed();
                 }else if(tokens.at(0).trimmed().toLower()=="phrase"){
                     phrase  = tokens.at(1).trimmed();
-                }else if(tokens.at(0).trimmed().toLower()=="error"){
+                }else if(tokens.at(0).trimmed().toLower()==SpellerDumper::SUMMARY_HEADER_ERROR){
                     cleanSummary=false;
                 }
             }

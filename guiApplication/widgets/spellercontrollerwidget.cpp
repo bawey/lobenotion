@@ -3,35 +3,78 @@
 #include <QDebug>
 #include <spellercontroller.h>
 #include <QMessageBox>
+#include <master.h>
+#include <QTreeView>
+#include <QHeaderView>
 
 SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     QWidget(parent)
 {
-    this->setLayout(new QVBoxLayout());
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    this->setLayout(mainLayout);
     buttonStartDaq=new QPushButton("Start");
     buttonStartDaq->setEnabled(false);
     buttonStopDaq=new QPushButton("Finish");
     buttonStopDaq->setEnabled(false);
     daqSignalProblem = new QLabel();
     daqSignalProblem->setText("Cannot start data taking due to noisy signal.");
+    daqSignalProblem->setWordWrap(true);
+    daqSignalProblem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     this->layout()->addWidget(buttonStartDaq);
     this->layout()->addWidget(buttonStopDaq);
     this->layout()->addWidget(daqSignalProblem);
 
-    formLayout=new QFormLayout();
-    form=new QWidget();
-    form->setLayout(formLayout);
+
+    modeStack = new QStackedLayout();
+
+    QFormLayout* onlineForm = new QFormLayout();
+    QFormLayout* offlineForm = new QFormLayout();
 
     subjectName = new QLineEdit();
     subjectName->setText(Settings::getSubjectName());
-    formLayout->addRow("Subject name", subjectName);
+    offlineForm->addRow("Subject name", subjectName);
     spellPhrase = new QLineEdit();
     spellPhrase->setText(Settings::getSpellerPhrase());
-    formLayout->addRow("Spell phrase", spellPhrase);
+    offlineForm->addRow("Spell phrase", spellPhrase);
     parentDir=new QLineEdit();
     parentDir->setText(Settings::getEegDumpPath());
-    formLayout->addRow("Parent dir", parentDir);
+    offlineForm->addRow("Parent dir", parentDir);
 
+    QWidget* onlineContainer = new QWidget();
+    onlineContainer->setLayout(onlineForm);
+
+    phraseLength = new QSpinBox();
+    phraseLength->setMaximum(100);
+    onlineForm->addRow("Phrase length", phraseLength);
+
+    classifierCombo = new QComboBox();
+    QTreeView* tv = new QTreeView();
+    ClassifiersModel* classifiersModel = Master::getInstance()->getClassifiersModel();
+    tv->setModel(classifiersModel);
+    tv->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tv->setSelectionMode(QAbstractItemView::SingleSelection);
+    tv->header()->hide();
+    classifierCombo->setModel(classifiersModel);
+    classifierCombo->setView(tv);
+    classifierCombo->view()->setMinimumWidth(666);
+    onlineForm->addRow("Classifier", classifierCombo);
+
+    // might raise problems with types or create a loop, but we'll see
+    connect(classifiersModel, SIGNAL(signalCurrentClassifierChanged(int)), classifierCombo, SLOT(setCurrentIndex(int)));
+    connect(classifierCombo, SIGNAL(currentIndexChanged(int)), classifiersModel, SLOT(slotSetCurrentClassifier(int)));
+
+    QWidget* offlineContainer = new QWidget();
+    offlineContainer->setLayout(offlineForm);
+
+    modeStack->addWidget(offlineContainer);
+    modeStack->addWidget(onlineContainer);
+    modeStack->setSizeConstraint(QLayout::SetFixedSize);
+
+    mainLayout->addLayout(modeStack);
+
+    formLayout=new QFormLayout();
+    form=new QWidget();
+    form->setLayout(formLayout);
     epochsPerStimulus = new QSpinBox();
     epochsPerStimulus->setValue(Settings::getSpellerEpochsPerStimulus());
     formLayout->addRow("Repetitions", epochsPerStimulus);
@@ -89,18 +132,12 @@ void SpellerControllerWidget::slotDataTakingFinished(){
 }
 
 void SpellerControllerWidget::slotButtonPressedStart(){
-    QString subjectNameValue = subjectName->text();
-    QString pathValue = parentDir->text();
-    QString phraseValue = spellPhrase->text();
+
     int highlightDurationValue = highlightDuration->text().toInt();
     int interStimulusInterval = dimDuration->text().toInt()+highlightDurationValue;
     int flashesPerStimulus = epochsPerStimulus->text().toInt();
     int interPeriodGapValue = interPeriodGap->text().toInt();
     int infoDurationValue = infoDuration->text().toInt();
-
-    Settings::setSubjectName(subjectNameValue);
-    Settings::setEegDumpPath(pathValue);
-    Settings::setSpellerPhrase(phraseValue);
 
     Settings::setSpellerHighlightStint(highlightDurationValue);
     Settings::setSpellerDimStint(interStimulusInterval-highlightDurationValue);
@@ -108,7 +145,24 @@ void SpellerControllerWidget::slotButtonPressedStart(){
     Settings::setSpellerEpochsPerStimulus(flashesPerStimulus);
     Settings::setSpellerInterPeriodStint(interPeriodGapValue);
 
-    emit signalDataTakingStart(phraseValue, flashesPerStimulus, interStimulusInterval, interPeriodGapValue, highlightDurationValue, infoDurationValue, subjectNameValue, pathValue);
+    if(modeStack->currentIndex()==0){
+        QString subjectNameValue = subjectName->text();
+        QString pathValue = parentDir->text();
+        QString phraseValue = spellPhrase->text();
+
+
+        Settings::setSubjectName(subjectNameValue);
+        Settings::setEegDumpPath(pathValue);
+        Settings::setSpellerPhrase(phraseValue);
+
+
+        emit signalDataTakingStart(phraseValue, flashesPerStimulus, interStimulusInterval, interPeriodGapValue, highlightDurationValue, infoDurationValue, subjectNameValue, pathValue);
+    } else if(modeStack->currentIndex()==1){
+        qDebug()<<"We don't yet know how to start online data taking, but working on it :)";
+        int charactersLimit = phraseLength->text().toInt();
+        emit signalOnlineModeStart(charactersLimit ,flashesPerStimulus, interStimulusInterval, interPeriodGapValue,
+                                   highlightDurationValue, infoDurationValue);
+    }
 }
 
 void SpellerControllerWidget::slotSignalFine(bool isFine){
@@ -149,4 +203,12 @@ void SpellerControllerWidget::slotButtonPressedFinish(){
     } else {
         qDebug() << "Yes was *not* clicked";
     }
+}
+
+void SpellerControllerWidget::switchOnline(){
+    modeStack->setCurrentIndex(1);
+}
+
+void SpellerControllerWidget::switchOffline(){
+    modeStack->setCurrentIndex(0);
 }

@@ -13,6 +13,11 @@ class SpellerDumper : public QObject
 {
     Q_OBJECT
 
+public:
+    static constexpr char const* SUMMARY_HEADER_ERROR="errcode";
+    static constexpr char const* SUMMARY_HEADER_SUBJECT="subject";
+    static constexpr char const* SUMMARY_HEADER_PHRASE="phrase";
+
 private:
     QDir* parentDir = 0;
     QFile* dataFile = 0;

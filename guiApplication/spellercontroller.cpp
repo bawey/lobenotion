@@ -7,6 +7,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
 #include <timer.h>
+#include <climits>
 
 
 /**
@@ -125,24 +126,37 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
     // this flag can externally be set via a signal-slot connection from the GUI
     flagAbort=false;
 
-    if(!validateInputString(params->phrase) || !validateTimings(*params)){
+    if(!params->isOnline && !validateInputString(params->phrase)){
+        emit error(SpellerController::ERRCODE_PHRASE);
+        return;
+    }else if(!validateTimings(*params)){
         emit error(SpellerController::ERRCODE_PARAMETERS);
         return;
     }else{
-        emit dataTakingStarted(params);
-        connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+        if(params->isOnline){
+            emit onlineModeStarted();
+        }else{
+            emit dataTakingStarted(params);
+            connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+        }
     }
 
-    for(int targetIdx = 0; targetIdx<params->phrase.length() && signalNeverBad && !flagAbort; ++targetIdx){
-        QString target = params->phrase.mid(targetIdx, 1);
-        unsigned short int number = keyboardSymbols.indexOf(target);
-        unsigned short int row;
-        unsigned short int column;
-        symbolNumberToRowCol(number, row, column);
+    int symbolsLimit = params->isOnline ? params->symbolsLimit: params->phrase.length();
 
+    for(int targetIdx = 0; (symbolsLimit == 0 || targetIdx<symbolsLimit) && signalNeverBad && !flagAbort; ++targetIdx){
         emit commandNextPeriod();
-        //qDebug()<<"Instructing to focus on column "<<column<<", row "<<row;
-        emit commandIndicateTarget(row, column);
+        if(params->isOnline){
+            emit commandShowMessage("Get ready for the next character!");
+        }else{
+            QString target = params->phrase.mid(targetIdx, 1);
+            unsigned short int number = keyboardSymbols.indexOf(target);
+            unsigned short int row;
+            unsigned short int column;
+            symbolNumberToRowCol(number, row, column);
+
+            //qDebug()<<"Instructing to focus on column "<<column<<", row "<<row;
+            emit commandIndicateTarget(row, column);
+        }
 
         //thread->msleep(infoDuration);
         this->sleepFrameAligned(params->stintInfo);
@@ -185,9 +199,13 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         emit error(ERRCODE_ABORTED);
     }
 
-    // Make sure the dumper doesn't capture more frames
-    disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
-    emit dataTakingEnded();
+    if(params->isOnline){
+        emit onlineModeEnded();
+    }else{
+        // Make sure the dumper doesn't capture more frames
+        disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+        emit dataTakingEnded();
+    }
     delete params;
 }
 
@@ -195,6 +213,7 @@ void SpellerController::startDataTaking(QString phrase, int epochsPerStimulus, i
                                         QString subjectName, QString parentDirectory){
     dataTakingParams* params = new dataTakingParams();
 
+    params->isOnline=false;
     params->stintHighlight=highlightDuration;
     params->stintDim=interStimulusInterval-highlightDuration;
     params->stintInfo=infoDuration;
@@ -212,7 +231,21 @@ void SpellerController::endDataTaking(){
     flagAbort=true;
 }
 
-void SpellerController::startOnline(int epochsPerStimulus, int interStimulusInterval, int highlightDuration, int infoDuration){}
+void SpellerController::startOnline(int charactersLimit, int epochsPerStimulus, int interStimulusInterval,
+                                    int interPeriodInterval, int highlightDuration, int infoDuration){
+
+    dataTakingParams* params = new dataTakingParams();
+
+    params->isOnline=true;
+    params->symbolsLimit=qMax(0, charactersLimit);
+    params->stintHighlight=highlightDuration;
+    params->stintDim=interStimulusInterval-highlightDuration;
+    params->stintInfo=infoDuration;
+    params->stintInterPeriod=interPeriodInterval;
+    params->epochsPerStimulus=epochsPerStimulus;
+
+    QtConcurrent::run(this, &SpellerController::dataTakingJob, params);
+}
 
 void SpellerController::endOnline(){}
 

@@ -79,10 +79,14 @@ signals:
 
 public slots:
     void slotDataTaking();
+    void slotOnlineUse();
     void slotDashboard();
     void slotAbout();
     void slotPreferences();
     void slotAnalyze();
+private:
+    void prologDataTakingOrOnline();
+
 };
 
 #endif // MAINWINDOW_H

@@ -13,7 +13,7 @@ FakeDaq::FakeDaq()
 
 float FakeDaq::generateContactQuality(float time){
     if(Settings::isDummyDaqNoisy()){
-        return qSin(time*(1+(qrand()%100)/1000.0));
+        return qAbs(qSin(time*(1+(qrand()%100)/1000.0)));
     }else{
         return 0.85f;
     }
@@ -27,13 +27,13 @@ void FakeDaq::run(){
         int noise = 50 -(qrand()%100);
 
         QSharedPointer<EegFrame> eegFrame = QSharedPointer<EegFrame>(new EegFrame(
-                                                                         (int)(5000+5000*qSin(time)),            (int)(5000+5000*qCos(time)),
-                                                                         (int)(5000+5000*qSin(time+noise)),      (int)(5000+5000*qCos(time+noise)),
-                                                                         (int)(5000+5000*qSin(2*time)),          (int)(5000+5000*qCos(2*time)),
-                                                                         (int)(5000+5000*qSin(2*time+noise)),    (int)(5000+5000*qCos(2*time+noise)),
-                                                                         (int)(5000+5000*qSin(4*time)),          (int)(5000+5000*qCos(4*time)),
-                                                                         (int)(5000+5000*qSin(4*time+noise)),    (int)(5000+5000*qCos(4*time+noise)),
-                                                                         (int)(5000+5000*qSin(8*time)),          (int)(5000+5000*qCos(8*time))));
+                                                                         (int)(9000+1000*qSin(.1*time+.01*noise)),            (int)(9000+1000*qCos(.1*time+.01*noise)),
+                                                                         (int)(9000+1000*qSin(.1*(time+.01*noise))),      (int)(9000+1000*qCos(.1*(time+.01*noise))),
+                                                                         (int)(9000+1000*qSin(.2*time+.01*noise)),          (int)(9000+1000*qCos(.2*time+.01*noise)),
+                                                                         (int)(9000+1000*qSin(.2*(time+.01*noise))),    (int)(9000+1000*qCos(.2*(time+.01*noise))),
+                                                                         (int)(9000+1000*qSin(.4*time+.01*noise)),          (int)(9000+1000*qCos(.4*time+.01*noise)),
+                                                                         (int)(9000+1000*qSin(.4*(time+.01*noise))),    (int)(9000+1000*qCos(.4*(time+.01*noise))),
+                                                                         (int)(9000+1000*qSin(.8*time+.01*noise)),          (int)(9000+1000*qCos(.8*time+.01*noise))));
 
         time=time/10;
 

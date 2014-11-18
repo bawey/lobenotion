@@ -29,15 +29,15 @@ class Master : public QObject
 public:
     static Master* getInstance();
 
-    const EegDaq* const getDaq() const {
+    const EegDaq* getDaq() const {
         return daq;
     }
 
-    const MetaProcessor* const getMetaProcessor() const{
+    const MetaProcessor* getMetaProcessor() const{
         return metaProcessor;
     }
 
-    const SpellerController* const getSpellerController() const{
+    const SpellerController* getSpellerController() const{
         return spellerController;
     }
 
