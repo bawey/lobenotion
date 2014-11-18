@@ -110,3 +110,26 @@ void ClassifiersModel::slotSetCurrentClassifier(int classifierToBe){
                  <<classifiers.length()<<" available!";
     }
 }
+
+void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
+    if(currentClassifier>=0 && classifiers.length()>currentClassifier){
+        int timestart = Timer::getTime();
+        octave_value session = Master::getInstance()->getOctaveProxy()->p3Session(data, meta, trg);
+        P3SessionInfo info(session);
+        qDebug()<<"Converting to P3Session took "<<(Timer::getTime()-timestart)<<" ms";
+        QVector<QPair<int,int>>* results = Master::getInstance()->getOctaveProxy()->askClassifier(classifiers.at(currentClassifier),
+                                                                                                  &info);
+        QString output = "Results: ";
+        for(int i=0; i<results->length(); ++i){
+            QPair<int, int> pair = results->at(i);
+            output.append(QString::number(pair.first)).append(" x ").append(QString::number(pair.second)).append(" ");
+        }
+
+        qDebug()<<"And jointly with clasification: "<<(Timer::getTime()-timestart)<<"ms. "<<output;
+
+
+    }else{
+        qWarning()<<"Received a request to classify sth, but current classifier is "<<currentClassifier
+                    <<" and there are "<<classifiers.length()<<" classfiers";
+    }
+}

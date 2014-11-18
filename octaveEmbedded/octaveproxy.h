@@ -16,6 +16,9 @@
 #include <QThread>
 #include <octaveEmbedded/octaveoutputreader.h>
 #include <classifiersmodel.h>
+#include <QSharedPointer>
+#include <QVector>
+#include <QPair>
 
 #define DOWNSAMPLING_RATE 6
 
@@ -26,12 +29,14 @@ class OctaveProxy : public QObject
 {
     Q_OBJECT
 public:
-    explicit OctaveProxy(QObject *parent = 0);
+    explicit OctaveProxy(bool redirectOutput=true, QObject *parent = 0);
     ~OctaveProxy();
 
     octave_value pickBestModel(QList<const P3SessionInfo*>, ClassifiersModel::ClassifierDescriptor* modelDesc);
     octave_value mergedSession(QList<const P3SessionInfo*>);
     void askClassifier(const ClassifiersModel::ClassifierDescriptor* modelDesc, QList<const P3SessionInfo *>);
+
+    QVector<QPair<int,int>>* askClassifier(const ClassifiersModel::ClassifierDescriptor* modelDesc, const P3SessionInfo* sessionDesc);
 
 signals:
 
@@ -52,6 +57,10 @@ public slots:
     octave_value_list loadSessions(QString dirpath, QStringList nameRoots);
     octave_value_list loadSessions(QStringList nameRoots);
 
+    octave_value p3Session(
+            QSharedPointer<QVector<int>> signal, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> targets,
+            int channelsCount=14, int samplingRate=128,
+            QString channelNames="{'F3', 'FC6', 'P7', 'T8', 'F7', 'F8', 'T7', 'P8', 'AF4', 'F4', 'AF3', 'O2', 'O1', 'FC5'}");
 
     void slotFetchedOctaveOutput(QString output){
         emit(signalFetchedOutput(output));

@@ -9,6 +9,8 @@
 #include <octave/octave.h>
 #include <octave/parse.h>
 #include <octave/toplev.h>
+#include <QSharedPointer>
+#include <QVector>
 
 
 class ClassifiersModel : public QAbstractTableModel
@@ -40,11 +42,12 @@ public slots:
     void slotTrainModel(QSharedPointer<QList<const P3SessionInfo *> > sharedInfos);
     void slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testData);
     void slotSetCurrentClassifier(int);
-
+    void slotAskCurrentClassifier(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta,
+                                  QSharedPointer<QVector<int>> trg);
 
 private:
     QList<ClassifierDescriptor*> classifiers;
-    int currentClassifier=0;
+    int currentClassifier=-1;
 };
 
 #endif // CLASSIFIERSMODEL_H

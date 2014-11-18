@@ -4,3 +4,9 @@ P3SessionInfo::P3SessionInfo(QString subject, QString spelledPhrase, bool isClea
     : subjectName(subject), phrase(spelledPhrase), loadedSession(octaveSession), clean(isClean), created(fileCreationTime)
 {
 }
+
+P3SessionInfo::P3SessionInfo(octave_value octaveSession)
+    : subjectName("N/A"), phrase(""), loadedSession(octaveSession), clean(true), created(QDateTime())
+{
+
+}

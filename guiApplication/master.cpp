@@ -41,6 +41,10 @@ void Master::connectModules(){
     connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
     connect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
     spellerController->slotSignalFine(metaProcessor->signalFine());
+
+    connect(spellerController, SIGNAL(requestPeriodClassification(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
+            classifiersModel, SLOT(slotAskCurrentClassifier(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)));
+
 }
 
 Master* Master::getInstance(){

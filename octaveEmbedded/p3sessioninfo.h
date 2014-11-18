@@ -16,6 +16,7 @@ class P3SessionInfo
 {
 public:
     P3SessionInfo(QString subject, QString spelledPhrase, bool clean, QDateTime fileCreationTime, octave_value octaveSession);
+    P3SessionInfo(octave_value octaveSession);
 
     const QString& getSubjectName() const{
         return subjectName;

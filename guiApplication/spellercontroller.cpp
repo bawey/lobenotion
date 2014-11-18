@@ -8,6 +8,7 @@
 #include <QFuture>
 #include <timer.h>
 #include <climits>
+#include <master.h>
 
 
 /**
@@ -54,6 +55,14 @@ void SpellerController::connectSignalsToSlots(){
     connect(this, SIGNAL(dataTakingStarted(dataTakingParams*)), dumper, SLOT(startDumpingSession(dataTakingParams*)));
     connect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
     connect(this, SIGNAL(error(unsigned char)), dumper, SLOT(spellerError(unsigned char)));
+
+    connect(this, SIGNAL(onlineModeStarted(const dataTakingParams*)), dumper, SLOT(startOnlineMode(const dataTakingParams*)));
+    connect(this, SIGNAL(onlineModeEnded()), dumper, SLOT(closeOnlineMode()));
+    connect(this, SIGNAL(onlinePeriodStarted()), dumper, SLOT(startOnlinePeriod()));
+    connect(this, SIGNAL(onlinePeriodEnded()), dumper, SLOT(closeOnlinePeriod()));
+
+    connect(dumper, SIGNAL(onlinePeriodCaptured(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
+            this, SLOT(slotCapturedOnlinePeriod(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)));
 }
 
 SpellerController::~SpellerController(){
@@ -134,11 +143,11 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         return;
     }else{
         if(params->isOnline){
-            emit onlineModeStarted();
+            emit onlineModeStarted(params);
         }else{
             emit dataTakingStarted(params);
-            connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
         }
+        connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
 
     int symbolsLimit = params->isOnline ? params->symbolsLimit: params->phrase.length();
@@ -170,6 +179,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         // a class member field, signalFine, can be set via a signal-slot while the loop executes
         signalNeverBad = signalNeverBad && flagSignalFine;
 
+        emit onlinePeriodStarted();
         for(int flashNo=0; flashNo<params->epochsPerStimulus && signalNeverBad && !flagAbort; ++flashNo){
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
@@ -186,11 +196,12 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
             }
             delete stimuli;
         }
-
         // qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
         emit commandDimKeyboard();
         //thread->msleep(interPeriodInterval);
         this->sleepFrameAligned(params->stintInterPeriod);
+
+        emit onlinePeriodEnded();
     }
     // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
     if(!signalNeverBad){
@@ -203,9 +214,9 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         emit onlineModeEnded();
     }else{
         // Make sure the dumper doesn't capture more frames
-        disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
         emit dataTakingEnded();
     }
+    disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     delete params;
 }
 
@@ -253,4 +264,7 @@ void SpellerController::slotSignalFine(bool isIt){
     this->flagSignalFine=isIt;
 }
 
-
+void SpellerController::slotCapturedOnlinePeriod(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
+    qDebug()<<"Got some data captured online: "<<data->length()<<" samples of data, "<<meta->length()<<" samples of meta and "<<trg->length()<<" samples of trg";
+    emit requestPeriodClassification(data, meta, trg);
+}

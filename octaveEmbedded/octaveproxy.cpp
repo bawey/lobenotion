@@ -6,7 +6,7 @@
 #include <QProcess>
 #include <classifiersmodel.h>
 
-OctaveProxy::OctaveProxy(QObject *parent) :
+OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
     QObject(parent)
 {
     string_vector octave_argv (2);
@@ -17,29 +17,30 @@ OctaveProxy::OctaveProxy(QObject *parent) :
     feval("cd", octave_value_list("scripts"));
     feval("init");
 
-    QString serverName = QString("/tmp/qlobesocket");
-    qDebug()<<"Server name: "<<serverName;
+    if(redirectOutput){
+        QString namedPipe = QString("/tmp/qlobesocket");
 
-    octave_value_list redirectArgs(1);
-    redirectArgs(0)=serverName.toStdString();
+        octave_value_list redirectArgs(1);
+        redirectArgs(0)=namedPipe.toStdString();
 
-    QProcess process;
-    process.start("rm", QStringList() << serverName);
-    process.waitForFinished();
+        QProcess process;
+        process.start("rm", QStringList() << namedPipe);
+        process.waitForFinished();
 
-    QProcess process2;
-    process2.start("mkfifo", QStringList() << serverName << "-m" << "777");
-    process2.waitForFinished();
+        QProcess process2;
+        process2.start("mkfifo", QStringList() << namedPipe << "-m" << "777");
+        process2.waitForFinished();
 
-    outputReader = new OctaveOutputReader(serverName);
-    connect(&outputThread, SIGNAL(started()), outputReader, SLOT(startReadingFifo()));
-    outputReader->moveToThread(&outputThread);
+        outputReader = new OctaveOutputReader(namedPipe);
+        connect(&outputThread, SIGNAL(started()), outputReader, SLOT(startReadingFifo()));
+        outputReader->moveToThread(&outputThread);
 
-    outputThread.start();
+        outputThread.start();
 
-    feval("redirectOutput", redirectArgs);
+        feval("redirectOutput", redirectArgs);
 
-    connect(outputReader, SIGNAL(signalFetchedOutput(QString)), this, SLOT(slotFetchedOctaveOutput(QString)));
+        connect(outputReader, SIGNAL(signalFetchedOutput(QString)), this, SLOT(slotFetchedOctaveOutput(QString)));
+    }
 }
 
 OctaveProxy::~OctaveProxy(){
@@ -146,6 +147,22 @@ void OctaveProxy::pickBestModel(QString dirpath, QString subject, QList<unsigned
     this->tr_std=results(2);
 }
 
+QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor* modelDesc, const P3SessionInfo* sessionDesc){
+    octave_value_list args(4);
+    args(0)=modelDesc->classifier;
+    args(1)=sessionDesc->getSession();
+    args(2)=modelDesc->tdMean;
+    args(3)=modelDesc->tdStd;
+    octave_value_list classified = feval("askClassifier", args);
+
+    QVector<QPair<int,int>>* results = new QVector<QPair<int,int>>();
+    Matrix mx = classified(0).matrix_value();
+    for(octave_idx_type row = 0; row<mx.rows(); ++row){
+        results->push_back(QPair<int,int>((int)mx(row,0), (int)mx(row,1)));
+    }
+    return results;
+}
+
 void OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor *modelDesc, QList<const P3SessionInfo *> infos){
     octave_value testSession = mergedSession(infos);
     octave_value_list classifier_params(4);
@@ -214,3 +231,42 @@ octave_value_list OctaveProxy::loadSessions(QString dirpath, QStringList nameRoo
     }
     return values;
 }
+
+octave_value OctaveProxy::p3Session(QSharedPointer<QVector<int> > signal, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > targets, int channelsCount, int samplingRate, QString channelNames)
+{
+
+            int parseStatus;
+            octave_value channelsCell = eval_string(channelNames.toStdString().c_str(), true, parseStatus);
+
+            int signalRows = signal->length()/(channelsCount+1);
+            int signalCols = channelsCount+1;
+
+            Matrix signalMx = Matrix(signalRows, signalCols);
+            for(int i=0; i<signal->length(); ++i){
+                signalMx(i/signalCols, i%signalCols)=((double)signal->at(i));
+            }
+
+            Matrix metaMx = Matrix(meta->length()/3, 3);
+            for(int i=0; i<meta->length(); ++i){
+                metaMx(i/3, i%3)=((double)meta->at(i));
+            }
+
+            Matrix trgMx = Matrix(targets->length()/3, 3);
+            for(int i=0; i<targets->length(); ++i){
+                trgMx(i/3, i%3)=((double)targets->at(i));
+            }
+
+            octave_value_list args=octave_value_list(6);
+            args(0)=signalMx;
+            args(1)=metaMx;
+            args(2)=trgMx;
+            args(3)=octave_value(channelsCount);
+            args(4)=octave_value(samplingRate);
+            args(5)=channelsCell;
+
+           // function p3Session = P3SessionLobeRaw(signal, stimuli, targets, channelsCount, samplingRate, channelNames);
+           octave_value_list session_vl = feval("P3SessionLobeRaw", args);
+//           session_vl.append(octave_value(DOWNSAMPLING_RATE));
+//           session_vl = feval("downsample", session_vl);
+           return session_vl(0);
+    }

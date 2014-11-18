@@ -8,7 +8,7 @@
 
 SpellerDumper::SpellerDumper()
 {
-
+    qRegisterMetaType<QSharedPointer<QVector<int>>>("QSharedPointer<QVector<int>>");
 }
 
 SpellerDumper::~SpellerDumper(){
@@ -37,11 +37,23 @@ void SpellerDumper::determineParentDirectory(QString suggestedPath){
 }
 
 void SpellerDumper::eegFrame(QSharedPointer<EegFrame> eegFrame){
-    if(dataStream==0){
-        qWarning()<<"EEG frame dumping attempted after file closing.";
+    if(isOnline){
+        if(onlinePeriodOngoing){
+            onlineData->append(Timer::getTime());
+            for(int c=0; c<eegFrame->CONTACTS_NO; ++c){
+                onlineData->append(eegFrame->getValue(c));
+            }
+        }else{
+            // it's not so abnormal - between the periods data keeps coming. a highlight would be more indicative
+            // qWarning()<<"SpellerDumper: eegFrame received while in online mode, yet there is no ongoing period.";
+        }
     }else{
-        *dataStream<<*eegFrame;
-        dataStream->flush();
+        if(dataStream==0){
+            qWarning()<<"EEG frame dumping attempted after file closing.";
+        }else{
+            *dataStream<<*eegFrame;
+            dataStream->flush();
+        }
     }
 }
 
@@ -49,17 +61,27 @@ void SpellerDumper::eegFrame(QSharedPointer<EegFrame> eegFrame){
 // - period number could be indicated as well
 
 void SpellerDumper::spellerHighlight(short code){
-    if(metaStream==0){
-        qWarning()<<"Attempted write after file object destruction";
-    }else{
-        unsigned long time = Timer::getTime();
-        //if the stimuli code corresponds to the current target. a bit of a (in)sanity check around the absolute values...
-        if( (code<0 && qAbs(code)==qAbs(targetColumn)) || (code>0 && code==targetRow)){
-            *metaStream<<time<<" 1  "<<code<<"\n";
+    if(isOnline){
+        if(onlinePeriodOngoing){
+            onlineMeta->append(Timer::getTime());
+            onlineMeta->append(0);
+            onlineMeta->append((int)code);
         }else{
-            *metaStream<<time<<" 0  "<<code<<"\n";
+            qWarning()<<"Speller hint received when dumper was on online mode, yet no period was ongoing";
         }
-        metaStream->flush();
+    }else{
+        if(metaStream==0){
+            qWarning()<<"Attempted write after file object destruction";
+        }else{
+            unsigned long time = Timer::getTime();
+            //if the stimuli code corresponds to the current target. a bit of a (in)sanity check around the absolute values...
+            if( (code<0 && qAbs(code)==qAbs(targetColumn)) || (code>0 && code==targetRow)){
+                *metaStream<<time<<" 1  "<<code<<"\n";
+            }else{
+                *metaStream<<time<<" 0  "<<code<<"\n";
+            }
+            metaStream->flush();
+        }
     }
 }
 
@@ -70,6 +92,8 @@ void SpellerDumper::spellerHint(short row, short column){
 }
 
 void SpellerDumper::startDumpingSession(dataTakingParams* params){
+
+    isOnline=false;
 
     determineParentDirectory(params->parentDir);
 
@@ -149,4 +173,49 @@ void SpellerDumper::spellerError(unsigned char errcode){
     if(summaryStream!=0){
        *summaryStream<<"errcode: "<<errcode<<" at "<<Timer::getTime()<<endl;
     }
+}
+
+void SpellerDumper::startOnlineMode(const dataTakingParams* params){
+    isOnline=true;
+    //TODO: 12=2*6 hardcoded as number of distinct stimuli
+    onlineMetaSize=3*params->epochsPerStimulus*12;
+    //TODO: 14 hardcoded as the number of channels
+    int estimatedTime = 12*params->epochsPerStimulus*(params->stintHighlight+params->stintDim)+params->stintInterPeriod*2;
+    int estimatedFrames =qRound(estimatedTime*128.0/1000);
+     onlineDataSize=estimatedFrames*(1+14);
+    qDebug()<<"estimated FramesPerPeriod limit: "<<estimatedFrames<<", so the data size: "<<onlineDataSize<<" and the meta size: "<<onlineMetaSize;
+}
+
+void SpellerDumper::closeOnlineMode(){
+    qDebug()<<"void SpellerDumper::closeOnlineMode()";
+    isOnline=false;
+    if(onlinePeriodOngoing){
+        qDebug()<<"forced closing online period";
+        closeOnlinePeriod();
+    }
+}
+
+void SpellerDumper::startOnlinePeriod(){
+    qDebug()<<"void SpellerDumper::startOnlinePeriod()";
+    onlineData=new QVector<int>();
+    onlineMeta=new QVector<int>();
+    //There will only be one period and one meaningless target: 0,0
+    onlineTrg=new QVector<int>();
+
+    onlineTrg->append(Timer::getTime());
+    onlineTrg->append(0);
+    onlineTrg->append(0);
+
+    onlinePeriodOngoing=true;
+}
+
+void SpellerDumper::closeOnlinePeriod(){
+    qDebug()<<"void SpellerDumper::closeOnlinePeriod()";
+    //Wrap the data and meta in QSharedPointers to be sent for processing and deferred deletion
+    QSharedPointer<QVector<int>> shareData = QSharedPointer<QVector<int>>(onlineData);
+    QSharedPointer<QVector<int>> shareMeta = QSharedPointer<QVector<int>>(onlineMeta);
+    QSharedPointer<QVector<int>> sharedTrg = QSharedPointer<QVector<int>>(onlineTrg);
+
+    onlinePeriodOngoing=false;
+    emit onlinePeriodCaptured(shareData, shareMeta, sharedTrg);
 }

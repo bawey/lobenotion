@@ -133,11 +133,11 @@ signals:
     void dataTakingStarted(dataTakingParams* params);
     void dataTakingEnded();
 
-    void onlineModeStarted();
+    void onlineModeStarted(const dataTakingParams*);
     void onlineModeEnded();
 
-    void onlineStarted();
-    void onlineEnded();
+    void onlinePeriodStarted();
+    void onlinePeriodEnded();
 
     /** scenario-related signals **/
     void commandRowColHighlight(short rowOrCol);
@@ -148,6 +148,8 @@ signals:
     void commandIndicateTarget(short row, short column);
 
     void error(unsigned char code);
+
+    void requestPeriodClassification(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
 public slots:
     /** external components can fireup the data taking with custom params **/
@@ -165,6 +167,8 @@ public slots:
     }
 
     void slotSignalFine(bool isIt);
+
+    void slotCapturedOnlinePeriod(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
 };
 
