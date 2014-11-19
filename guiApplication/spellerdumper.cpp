@@ -119,6 +119,7 @@ void SpellerDumper::startDumpingSession(dataTakingParams* params){
     targetsStream=new QTextStream(targetsFile);
     summaryStream=new QTextStream(summaryFile);
 
+    *summaryStream<<"subject: "<<params->subjectName<<endl;
     *summaryStream<<"phrase: "<<params->phrase<<endl;
     *summaryStream<<"repeats: "<<params->epochsPerStimulus<<endl;
     *summaryStream<<"highlight: "<<params->stintHighlight<<endl;

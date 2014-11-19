@@ -65,46 +65,33 @@ QVariant SessionsModel::headerData(int section, Qt::Orientation orientation, int
     return QVariant();
 }
 
-void SessionsModel::slotLoadSession(QString dirpath, QString subject, unsigned short number){
-    OctaveProxy* proctave = Master::getInstance()->getOctaveProxy();
-    QList<unsigned short> sessionNos;
-    sessionNos.append(number);
-    octave_value octave_session = proctave->loadMergeAndDownsample(dirpath, subject, sessionNos);
-
-    //this->sessions.append(new P3SessionInfo(subject, "unknown", false, octave_session));
-    emit dataChanged(createIndex(sessions.length()-1, 0), createIndex(sessions.length()-1, columnCount()));
-}
-
-void SessionsModel::slotLoadSession(QString dirpath, QStringList nameroots){
-    octave_value_list sessions = Master::getInstance()->getOctaveProxy()->loadSessions(dirpath, nameroots);
-    for(int i=0; i<sessions.length(); ++i){
-        //P3SessionInfo* info = new P3SessionInfo("Dummy subject", "Phrase?", false, sessions(i));
-        //this->sessions.push_back(info);
-    }
-    emit dataChanged(createIndex(0, 0), createIndex(sessions.length()-1, columnCount()));
-}
-
+/**
+ * @brief SessionsModel::slotLoadSession
+ * @param nameroots absolute file paths without the trailing _summary/_data/_meta/_targets
+ */
 void SessionsModel::slotLoadSession(QStringList nameroots){
-    octave_value_list sessions = Master::getInstance()->getOctaveProxy()->loadSessions(nameroots);
-    beginInsertRows(QModelIndex(), this->sessions.length(), this->sessions.length()+sessions.length()-1);
-    if(nameroots.length()!=sessions.length()){
-        qDebug()<<"some session was not loaded correctly. Need to handle that";
 
-    }else{
-        for(int i=0; i<sessions.length(); ++i){
-            QString subject;
-            QString phrase;
-            QDateTime created;
-            bool clean = parseSummaryFile(nameroots.at(i)+"_summary", subject, phrase, created);
+    OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
+    for(int i=0; i<nameroots.length(); ++i){
+        beginInsertRows(QModelIndex(), this->sessions.length(), this->sessions.length()+sessions.length()-1);
 
-            qDebug()<<"Pushing onto sessions list";
-            P3SessionInfo* info = new P3SessionInfo(subject, phrase, clean, created, sessions(i));
-            this->sessions.push_back(info);
+        QString subject;
+        QString phrase;
+        QDateTime created;
+        bool clean = parseSummaryFile(nameroots.at(i)+"_summary", subject, phrase, created);
+
+        P3SessionInfo* info = proxy->loadP3Session(nameroots.at(i));
+        if(info!=NULL){
+            P3SessionInfo* infoFull = new P3SessionInfo(subject, phrase, clean, created, info->getSession());
+            this->sessions.push_back(infoFull);
+        }else{
+            qWarning()<<"Problems loading session "<<nameroots.at(i)<<". Ignoring and continuing.";
         }
+
+        endInsertRows();
+        qDebug()<<"Emitting dataChanged()";
+        emit dataChanged(createIndex(0, 0), createIndex(sessions.length()-1, columnCount()-1));
     }
-    endInsertRows();
-    qDebug()<<"Emitting dataChanged()";
-    emit dataChanged(createIndex(0, 0), createIndex(sessions.length()-1, columnCount()-1));
 }
 
 bool SessionsModel::parseSummaryFile(QString path, QString& subject, QString& phrase, QDateTime& created){

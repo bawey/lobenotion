@@ -4,7 +4,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QProcess>
-#include <classifiersmodel.h>
+#include <master.h>
 
 OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
     QObject(parent)
@@ -59,6 +59,7 @@ void OctaveProxy::demo(){
     }else {
         std::cout << "invalid \n";
     }
+    errorCheckEpilogue();
 }
 
 void OctaveProxy::diag(){
@@ -88,6 +89,8 @@ void OctaveProxy::simpleTrainModel(QString dirpath, QString subject, QList<unsig
     this->model=trained(0);
     this->tr_mean=trained(1);
     this->tr_std=trained(2);
+
+    errorCheckEpilogue();
 }
 
 void OctaveProxy::simpleClassifySessions(QString dirpath, QString subject, QList<unsigned short> sessions){
@@ -100,6 +103,7 @@ void OctaveProxy::simpleClassifySessions(QString dirpath, QString subject, QList
 
     octave_value_list classified = feval("askClassifier", classifier_params);
 
+    errorCheckEpilogue();
 }
 
 void OctaveProxy::interpreter(){
@@ -112,6 +116,8 @@ void OctaveProxy::interpreter(){
         line = stream.readLine();
         eval_string(line.toStdString(), false, parse_status);
     } while (!line.isNull());
+
+    errorCheckEpilogue();
 }
 
 octave_value OctaveProxy::loadMergeAndDownsample(QString dirpath, QString subject, QList<unsigned short> sessions){
@@ -134,20 +140,22 @@ octave_value OctaveProxy::loadMergeAndDownsample(QString dirpath, QString subjec
     loaded.append(octave_value(DOWNSAMPLING_RATE));
 
     octave_value_list downsampled = feval("downsample", loaded);
+    errorCheckEpilogue();
     return downsampled(0);
 }
 
-void OctaveProxy::pickBestModel(QString dirpath, QString subject, QList<unsigned short> sessions){
-    octave_value session = loadMergeAndDownsample(dirpath, subject, sessions);
-    octave_value_list args(1);
-    args(0)=session;
-    octave_value_list results = feval("pickClassifier", args);
-    this->model=results(0);
-    this->tr_mean=results(1);
-    this->tr_std=results(2);
-}
+//void OctaveProxy::pickBestModel(QString dirpath, QString subject, QList<unsigned short> sessions){
+//    octave_value session = loadMergeAndDownsample(dirpath, subject, sessions);
+//    octave_value_list args(1);
+//    args(0)=session;
+//    octave_value_list results = feval("pickClassifier", args);
+//    this->model=results(0);
+//    this->tr_mean=results(1);
+//    this->tr_std=results(2);
+//    errorCheckEpilogue();
+//}
 
-QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor* modelDesc, const P3SessionInfo* sessionDesc){
+QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc){
     octave_value_list args(4);
     args(0)=modelDesc->classifier;
     args(1)=sessionDesc->getSession();
@@ -160,10 +168,11 @@ QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifiersModel::Clas
     for(octave_idx_type row = 0; row<mx.rows(); ++row){
         results->push_back(QPair<int,int>((int)mx(row,0), (int)mx(row,1)));
     }
+    errorCheckEpilogue();
     return results;
 }
 
-void OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor *modelDesc, QList<const P3SessionInfo *> infos){
+void OctaveProxy::askClassifier(const ClassifierInfo *modelDesc, QList<const P3SessionInfo *> infos){
     octave_value testSession = mergedSession(infos);
     octave_value_list classifier_params(4);
 
@@ -173,6 +182,7 @@ void OctaveProxy::askClassifier(const ClassifiersModel::ClassifierDescriptor *mo
     classifier_params(3)=modelDesc->tdStd;
 
     octave_value_list classified = feval("askClassifier", classifier_params);
+    errorCheckEpilogue();
 }
 
 octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> infos){
@@ -186,11 +196,11 @@ octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> infos){
             merged = feval("P3SessionMerge", args);
         }
     }
+    errorCheckEpilogue();
     return merged(0);
 }
 
-octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos,
-                                        ClassifiersModel::ClassifierDescriptor* desc){
+ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
 
     octave_value_list args(2);
     octave_value_list merged(1);
@@ -205,68 +215,81 @@ octave_value OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos,
     qDebug()<<"embarking on classifier training";
     octave_value_list results = feval("pickClassifier", merged);
 
-    /** prefill the descriptor **/
-    desc->classifier=results(0);
-    desc->tdMean=results(1);
-    desc->tdStd=results(2);
     std::string classifierString = feval("stringify", octave_value_list(results(3)))(0).string_value();
-    desc -> parameters = QString::fromStdString(classifierString);
 
-    return results(0);
-}
-
-octave_value_list OctaveProxy::loadSessions(QStringList nameRoots){
-    return loadSessions("", nameRoots);
-}
-
-octave_value_list OctaveProxy::loadSessions(QString dirpath, QStringList nameRoots){
-    octave_value_list values(nameRoots.length());
-    unsigned short i = 0;
-    foreach(QString nameroot, nameRoots){
-        octave_value_list args(2);
-        args(0)=octave_value(dirpath.toStdString());
-        args(1)=octave_value(nameroot.toStdString());
-        octave_value_list returns = feval(P3SingleSession, args);
-        values(i++) = returns(0);
+    if (errorCheckEpilogue()){
+        return NULL;
+    } else {
+        ClassifierInfo* desc = new ClassifierInfo();
+        /** prefill the descriptor **/
+        desc->classifier=results(0);
+        desc->tdMean=results(1);
+        desc->tdStd=results(2);
+        desc->parameters = QString::fromStdString(classifierString);
+        desc->classifier = results(0);
+        return desc;
     }
-    return values;
 }
 
-octave_value OctaveProxy::p3Session(QSharedPointer<QVector<int> > signal, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > targets, int channelsCount, int samplingRate, QString channelNames)
+P3SessionInfo* OctaveProxy::loadP3Session(QString absNameroot){
+
+    octave_value_list args(2);
+    args(0)=octave_value("");
+    args(1)=octave_value(absNameroot.toStdString());
+    octave_value_list returns = feval(P3SingleSession, args);
+
+    if(errorCheckEpilogue()){
+        return NULL;
+    }else{
+        return new P3SessionInfo(returns(0));
+    }
+}
+
+P3SessionInfo* OctaveProxy::toP3Session(QSharedPointer<QVector<int> > signal, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > targets, int channelsCount, int samplingRate, QString channelNames)
 {
+    int parseStatus;
+    octave_value channelsCell = eval_string(channelNames.toStdString().c_str(), true, parseStatus);
 
-            int parseStatus;
-            octave_value channelsCell = eval_string(channelNames.toStdString().c_str(), true, parseStatus);
+    int signalRows = signal->length()/(channelsCount+1);
+    int signalCols = channelsCount+1;
 
-            int signalRows = signal->length()/(channelsCount+1);
-            int signalCols = channelsCount+1;
-
-            Matrix signalMx = Matrix(signalRows, signalCols);
-            for(int i=0; i<signal->length(); ++i){
-                signalMx(i/signalCols, i%signalCols)=((double)signal->at(i));
-            }
-
-            Matrix metaMx = Matrix(meta->length()/3, 3);
-            for(int i=0; i<meta->length(); ++i){
-                metaMx(i/3, i%3)=((double)meta->at(i));
-            }
-
-            Matrix trgMx = Matrix(targets->length()/3, 3);
-            for(int i=0; i<targets->length(); ++i){
-                trgMx(i/3, i%3)=((double)targets->at(i));
-            }
-
-            octave_value_list args=octave_value_list(6);
-            args(0)=signalMx;
-            args(1)=metaMx;
-            args(2)=trgMx;
-            args(3)=octave_value(channelsCount);
-            args(4)=octave_value(samplingRate);
-            args(5)=channelsCell;
-
-           // function p3Session = P3SessionLobeRaw(signal, stimuli, targets, channelsCount, samplingRate, channelNames);
-           octave_value_list session_vl = feval("P3SessionLobeRaw", args);
-//           session_vl.append(octave_value(DOWNSAMPLING_RATE));
-//           session_vl = feval("downsample", session_vl);
-           return session_vl(0);
+    Matrix signalMx = Matrix(signalRows, signalCols);
+    for(int i=0; i<signal->length(); ++i){
+        signalMx(i/signalCols, i%signalCols)=((double)signal->at(i));
     }
+
+    Matrix metaMx = Matrix(meta->length()/3, 3);
+    for(int i=0; i<meta->length(); ++i){
+        metaMx(i/3, i%3)=((double)meta->at(i));
+    }
+
+    Matrix trgMx = Matrix(targets->length()/3, 3);
+    for(int i=0; i<targets->length(); ++i){
+        trgMx(i/3, i%3)=((double)targets->at(i));
+    }
+
+    octave_value_list args=octave_value_list(6);
+    args(0)=signalMx;
+    args(1)=metaMx;
+    args(2)=trgMx;
+    args(3)=octave_value(channelsCount);
+    args(4)=octave_value(samplingRate);
+    args(5)=channelsCell;
+
+    // function p3Session = P3SessionLobeRaw(signal, stimuli, targets, channelsCount, samplingRate, channelNames);
+    octave_value_list session_vl = feval("P3SessionLobeRaw", args);
+    if (errorCheckEpilogue()){
+        return NULL;
+    }else{
+        return new P3SessionInfo(session_vl(0));
+    }
+}
+
+bool OctaveProxy::errorCheckEpilogue(){
+    if(error_state){
+        emit signalOctaveError(QString("Octave error: ").append(QString::fromStdString(last_error_message())));
+        reset_error_handler();
+        return true;
+    }
+    return false;
+}

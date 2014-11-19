@@ -59,6 +59,9 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     classifierCombo->view()->setMinimumWidth(666);
     onlineForm->addRow("Classifier", classifierCombo);
 
+    recognizedCharacters = new QLabel();
+    onlineForm->addRow("Decoded", recognizedCharacters);
+
     // might raise problems with types or create a loop, but we'll see
     connect(classifiersModel, SIGNAL(signalCurrentClassifierChanged(int)), classifierCombo, SLOT(setCurrentIndex(int)));
     connect(classifierCombo, SIGNAL(currentIndexChanged(int)), classifiersModel, SLOT(slotSetCurrentClassifier(int)));
@@ -211,4 +214,12 @@ void SpellerControllerWidget::switchOnline(){
 
 void SpellerControllerWidget::switchOffline(){
     modeStack->setCurrentIndex(0);
+}
+
+void SpellerControllerWidget::slotRecognizedCharacter(QChar character){
+    recognizedCharacters->setText(recognizedCharacters->text().append(character));
+}
+
+void SpellerControllerWidget::slotRecognizedCharacter(QString charStr){
+    recognizedCharacters->setText(recognizedCharacters->text().append(charStr));
 }

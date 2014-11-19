@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "widgets/eegmetadatawidget.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -120,6 +121,8 @@ void MainWindow::connectSignalsToSlots(){
     connect(spellerCtlWidget, SIGNAL(signalOnlineModeEnd()), spellerCtl, SLOT(endOnline()));
     connect(spellerCtl, SIGNAL(dataTakingStarted(dataTakingParams*)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
     connect(spellerCtl, SIGNAL(dataTakingEnded()), spellerCtlWidget, SLOT(slotDataTakingFinished()));
+    connect(spellerCtl, SIGNAL(signalSymbolRecognized(QChar)), spellerCtlWidget, SLOT(slotRecognizedCharacter(QChar)));
+    connect(spellerCtl, SIGNAL(signalSymbolRecognized(QString)), spellerCtlWidget, SLOT(slotRecognizedCharacter(QString)));
 
 
     connect(spellerCtl, SIGNAL(error(unsigned char)), spellerCtlWidget, SLOT(slotSpellerError(unsigned char)));
@@ -130,7 +133,7 @@ void MainWindow::connectSignalsToSlots(){
     connect(spellerCtl, SIGNAL(commandRowColHighlight(short)), spellerWidget, SLOT(highlight(short)));
     connect(spellerCtl, SIGNAL(commandDimKeyboard()), spellerWidget, SLOT(unhighlight()));
     connect(spellerCtl, SIGNAL(commandIndicateTarget(short,short)), spellerWidget, SLOT(highlightTile(short,short)));
-    //connect(spellerCtl, SIGNAL(), spellerWidget, SLOT());
+    connect(spellerCtl, SIGNAL(commandShowMessage(QString)), spellerWidget, SLOT(showMessage(QString)));
 
     // spellerController to mainWindow - prevent switching tabs
 
@@ -142,6 +145,7 @@ void MainWindow::connectSignalsToSlots(){
 
     //Launching online mode from classifiers management panel
     connect(classifiersWidget, SIGNAL(signalGoOnline()), this, SLOT(slotOnlineUse()));
+    connect(master, SIGNAL(signalErrorRelay(QString)), this, SLOT(slotDisplayError(QString)));
 }
 
 void MainWindow::slotDashboard(){
@@ -184,4 +188,10 @@ void MainWindow::slotAbout(){
     stackLayout->setCurrentIndex(4);
 }
 
-
+void MainWindow::slotDisplayError(QString errmsg){
+    QMessageBox qmb;
+    qmb.setModal(true);
+    qmb.setText(errmsg);
+    qmb.setIcon(QMessageBox::Icon::Warning);
+    qmb.exec();
+}

@@ -32,6 +32,7 @@ private:
     // online speller parameters
     QSpinBox* phraseLength;
     QComboBox* classifierCombo;
+    QLabel* recognizedCharacters;
 
     QStackedLayout* modeStack;
 
@@ -62,6 +63,8 @@ public slots:
     void slotButtonPressedFinish();
     void switchOnline();
     void switchOffline();
+    void slotRecognizedCharacter(QChar character);
+    void slotRecognizedCharacter(QString charStr);
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H

@@ -41,7 +41,9 @@ HEADERS += $$PWD/guiApplication/qemokitd.h \
     $$PWD/guiApplication/master.h \
     $$PWD/guiApplication/sessionsmodel.h \
     $$PWD/guiApplication/classifiersmodel.h \
+    $$PWD/guiApplication/classifierinfo.h \
     $$PWD/octaveEmbedded/octaveoutputreader.h
+
 
 FORMS    +=
 

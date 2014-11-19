@@ -11,21 +11,12 @@
 #include <octave/toplev.h>
 #include <QSharedPointer>
 #include <QVector>
+#include <classifierinfo.h>
 
 
 class ClassifiersModel : public QAbstractTableModel
 {
     Q_OBJECT
-
-public:
-    struct ClassifierDescriptor{
-        QString subject;
-        QString parameters;
-        unsigned short charsCount;
-        octave_value classifier;
-        octave_value tdMean;
-        octave_value tdStd;
-    };
 
 public:
     explicit ClassifiersModel(QObject *parent = 0);
@@ -38,6 +29,7 @@ public:
 signals:
 
     void signalCurrentClassifierChanged(int);
+    void signalSymbolClassified(int row, int column);
 public slots:
     void slotTrainModel(QSharedPointer<QList<const P3SessionInfo *> > sharedInfos);
     void slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testData);
@@ -46,7 +38,7 @@ public slots:
                                   QSharedPointer<QVector<int>> trg);
 
 private:
-    QList<ClassifierDescriptor*> classifiers;
+    QList<ClassifierInfo*> classifiers;
     int currentClassifier=-1;
 };
 

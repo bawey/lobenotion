@@ -75,9 +75,9 @@ private:
 
 
 signals:
-
+    void signalErrorRelay(QString errmsg);
 public slots:
-
+    void slotErrorRelay(QString errmsg);
 };
 
 #endif // MASTER_H

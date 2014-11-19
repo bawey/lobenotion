@@ -31,8 +31,6 @@ signals:
 
 
 public slots:
-    void slotLoadSession(QString dirpath, QString subject, unsigned short number);
-    void slotLoadSession(QString dirpath, QStringList nameroots);
     void slotLoadSession(QStringList nameroots);
 private:
     bool parseSummaryFile(QString path, QString& subject, QString& phrase, QDateTime& created);

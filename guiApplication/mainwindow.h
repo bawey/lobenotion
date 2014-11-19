@@ -84,6 +84,8 @@ public slots:
     void slotAbout();
     void slotPreferences();
     void slotAnalyze();
+
+    void slotDisplayError(QString);
 private:
     void prologDataTakingOrOnline();
 

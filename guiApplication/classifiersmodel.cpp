@@ -6,6 +6,7 @@
 #include <octave/octave.h>
 #include <octave/oct.h>
 #include <QModelIndex>
+#include <classifierinfo.h>
 
 ClassifiersModel::ClassifiersModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -20,10 +21,11 @@ ClassifiersModel::ClassifiersModel(QObject *parent) :
 void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>> sharedInfos){
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
 
-    ClassifierDescriptor* desc = new ClassifierDescriptor();
-    octave_value classifier = proxy->pickBestModel(*sharedInfos, desc);
-
-
+    ClassifierInfo* desc = proxy->pickBestModel(*sharedInfos);
+    if(desc==NULL){
+        qWarning()<<"pickBestModel returned a null ClassifierInfo pointer";
+        return;
+    }
     QString subjects = sharedInfos->at(0)->getSubjectName();
 
     unsigned short charsCount = 0;
@@ -50,7 +52,7 @@ void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>
 }
 
 void ClassifiersModel::slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
-    ClassifierDescriptor *desc = classifiers.at(index);
+    ClassifierInfo *desc = classifiers.at(index);
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
     proxy->askClassifier(desc, *testSessionInfos);
 }
@@ -65,7 +67,7 @@ int ClassifiersModel::columnCount(const QModelIndex &parent) const{
 }
 QVariant ClassifiersModel::data(const QModelIndex &index, int role) const {
     if(role==Qt::DisplayRole){
-        ClassifierDescriptor* record = classifiers.at(index.row());
+        ClassifierInfo* record = classifiers.at(index.row());
             switch(index.column()){
             case 0:
                 return record->subject;
@@ -114,21 +116,23 @@ void ClassifiersModel::slotSetCurrentClassifier(int classifierToBe){
 void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
     if(currentClassifier>=0 && classifiers.length()>currentClassifier){
         int timestart = Timer::getTime();
-        octave_value session = Master::getInstance()->getOctaveProxy()->p3Session(data, meta, trg);
-        P3SessionInfo info(session);
-        qDebug()<<"Converting to P3Session took "<<(Timer::getTime()-timestart)<<" ms";
-        QVector<QPair<int,int>>* results = Master::getInstance()->getOctaveProxy()->askClassifier(classifiers.at(currentClassifier),
-                                                                                                  &info);
-        QString output = "Results: ";
-        for(int i=0; i<results->length(); ++i){
-            QPair<int, int> pair = results->at(i);
-            output.append(QString::number(pair.first)).append(" x ").append(QString::number(pair.second)).append(" ");
+        P3SessionInfo* info = Master::getInstance()->getOctaveProxy()->toP3Session(data, meta, trg);
+        if(info==NULL){
+            qWarning()<<"Null P3Session info returned by toP3Session";
+        } else {
+            qDebug()<<"Converting to P3Session took "<<(Timer::getTime()-timestart)<<" ms";
+            QVector<QPair<int,int>>* results = Master::getInstance()->getOctaveProxy()->askClassifier(classifiers.at(currentClassifier), info);
+            QString output = "Results: ";
+            for(int i=0; i<results->length(); ++i){
+                QPair<int, int> pair = results->at(i);
+                output.append(QString::number(pair.first)).append(" x ").append(QString::number(pair.second)).append(" ");
+                emit signalSymbolClassified(qAbs(pair.first), qAbs(pair.second));
+            }
+            qDebug()<<"And jointly with clasification: "<<(Timer::getTime()-timestart)<<"ms. "<<output;
+
+            delete info;
         }
-
-        qDebug()<<"And jointly with clasification: "<<(Timer::getTime()-timestart)<<"ms. "<<output;
-
-
-    }else{
+    } else {
         qWarning()<<"Received a request to classify sth, but current classifier is "<<currentClassifier
                     <<" and there are "<<classifiers.length()<<" classfiers";
     }

@@ -151,6 +151,9 @@ signals:
 
     void requestPeriodClassification(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
+    void signalSymbolRecognized(QChar symbol);
+    void signalSymbolRecognized(QString symbol);
+
 public slots:
     /** external components can fireup the data taking with custom params **/
     void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
@@ -170,6 +173,7 @@ public slots:
 
     void slotCapturedOnlinePeriod(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
+    void slotSymbolRecognized(int row, int col);
 };
 
 #endif // SPELLERCONTROLLER_H

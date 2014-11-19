@@ -268,3 +268,13 @@ void SpellerController::slotCapturedOnlinePeriod(QSharedPointer<QVector<int> > d
     qDebug()<<"Got some data captured online: "<<data->length()<<" samples of data, "<<meta->length()<<" samples of meta and "<<trg->length()<<" samples of trg";
     emit requestPeriodClassification(data, meta, trg);
 }
+
+void SpellerController::slotSymbolRecognized(int row, int col){
+    int symbolNo = this->symbolRowColToNumber(row, col);
+    QString symbolStr = this->keyboardSymbols.at(symbolNo);
+    if(symbolStr.length()==1){
+        emit signalSymbolRecognized(symbolStr.at(0));
+    }else{
+        emit signalSymbolRecognized(symbolStr);
+    }
+}
