@@ -6,8 +6,9 @@
 #include <QSharedPointer>
 #include <eegframe.h>
 #include <metaframe.h>
+#include <QGroupBox>
 
-class EegMetaDataWidget : public QWidget
+class EegMetaDataWidget : public QGroupBox
 {
     Q_OBJECT
 public:

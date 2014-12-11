@@ -4,7 +4,7 @@
 #include <timer.h>
 
 EegMetaDataWidget::EegMetaDataWidget(QWidget *parent) :
-    QWidget(parent)
+    QGroupBox("DAQ monitor", parent)
 {
     //TODO: investigate potential memory leaks and attempt to address 'em by parentage
     QVBoxLayout* column = new QVBoxLayout();

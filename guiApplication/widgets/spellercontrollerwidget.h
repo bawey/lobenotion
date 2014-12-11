@@ -10,6 +10,7 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QStackedLayout>
+#include <QDoubleSpinBox>
 
 class SpellerControllerWidget : public QWidget
 {
@@ -32,6 +33,8 @@ private:
     // online speller parameters
     QSpinBox* phraseLength;
     QComboBox* classifierCombo;
+    QDoubleSpinBox* confidenceThreshold;
+    QSpinBox* confidenceSetoffPeriod;
     QLabel* recognizedCharacters;
 
     QStackedLayout* modeStack;

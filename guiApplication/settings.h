@@ -47,6 +47,7 @@ public:
     static QString getMetaDumpPath(); // Deprecated, I think
     static QString getSpellerCharset();
     static unsigned short getSpellerMatrixSize();
+    static QString getOctaveScriptsRoot();
 
 private:
     static QString DEF_SPELLER_CHARSET;
@@ -66,7 +67,7 @@ private:
 
     static QString OPT_SUBJECT_NAME;
     static QString OPT_SPELLER_PHRASE;
-
+    static QString OPT_OCTAVE_SCRIPTS_ROOT;
 
 
     static Settings* getInstance();

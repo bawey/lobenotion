@@ -16,9 +16,10 @@ signals:
 
 public slots:
     void slotOctaveOutput(QString output);
-
+    void slotVScrollBarChanged(int);
 private:
     QPlainTextEdit textEdit;
+    bool sliderAllDown = false;
 };
 
 #endif // OCTAVEOUTPUTWIDGET_H

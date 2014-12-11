@@ -45,7 +45,7 @@ private:
     QHBoxLayout* dashboardLayout;
     QHBoxLayout* spellerLayout;
     QWidget* analysisWidget;
-    QHBoxLayout* analysisLayout;
+    QVBoxLayout* analysisLayout;
 
     QMenu* fileMenu;
     QMenu* editMenu;
@@ -57,6 +57,7 @@ private:
     QAction* actPreferences;
     QAction* actAbout;
     QAction* actAnalyze;
+    QAction* actReloadScripts;
 
     // OTHER PROGRAM COMPONENTS:
     Master* master;

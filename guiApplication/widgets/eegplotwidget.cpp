@@ -2,26 +2,45 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QGridLayout>
+#include <QPalette>
+#include <QVBoxLayout>
 
 EegPlotWidget::EegPlotWidget(QString title, QWidget *parent) :
     QGroupBox(title, parent)
 {
     QGridLayout* layout = new QGridLayout();
+
+    QColor colora(0,0,0,255);
+    QColor colorb(0,200,0,255);
+
     for(int i=0; i<EegFrame::CONTACTS_NO; ++i){
-        QLabel *label = new QLabel(QString(EegFrame::contacts[i].c_str())+" "+
-            QString(EegFrame::contacts[i+1].c_str()));
+
+        QVBoxLayout *labels = new QVBoxLayout();
+
+        QLabel *labela = new QLabel(QString(EegFrame::contacts[i].c_str()));
+        QPalette palette = labela->palette();
+        palette.setColor(labela->foregroundRole(), colora);
+        labela->setPalette(palette);
+        QLabel *labelb = new QLabel(QString(EegFrame::contacts[i+1].c_str()));
+        palette = labelb->palette();
+        palette.setColor(labelb->foregroundRole(), colorb);
+        labelb->setPalette(palette);
+        labels->addWidget(labela);
+        labels->addWidget(labelb);
+
 
         QCustomPlot *plot = new QCustomPlot();
 //        plot->xAxis->setLabel("t");
 //        plot->yAxis->setLabel("v");
         plot->xAxis->setVisible(false);
         plot->yAxis->setVisible(false);
-        //plot->yAxis->setRange(8000, 10000);
         graphs[i]=plot->addGraph();
         graphs[++i]=plot->addGraph();
-        plot->graph(1)->setPen(QPen(QColor(255,0,0,255)));
+        plot->graph(0)->setPen(QPen(colora));
+        plot->graph(1)->setPen(QPen(colorb));
+        plot->setBackground(this->palette().color(QPalette::Background));
 
-        layout->addWidget(label, i+1, 0);
+        layout->addLayout(labels, i+1, 0);
         layout->addWidget(plot, i+1, 1);
     }
     this->setLayout(layout);
@@ -37,6 +56,8 @@ void EegPlotWidget::eegFrame(QSharedPointer<EegFrame> framePtr){
     static unsigned short counter = 0;
 
     counter=(counter+1)%32;
+
+    QVector<QPair<double, double>> ranges;
 
     for(int e=0; e<EegFrame::CONTACTS_NO; ++e){
 
@@ -57,13 +78,22 @@ void EegPlotWidget::eegFrame(QSharedPointer<EegFrame> framePtr){
                 maxY=qMax(maxY, y[e][index]);
             }
 
-            graphs[e]->parentPlot()->yAxis->setRange(minY, maxY);
-            graphs[e]->parentPlot()->replot();
+            ranges.append(QPair<double, double>(minY, maxY));
 
         }
         if(x[e].size()>=2000){
             x[e].pop_front();
             y[e].pop_front();
         }
+    }
+
+
+    for(int e=0; e<ranges.length()/2; ++e){
+        double minY = qMin(ranges.at(2*e).first, ranges.at(2*e+1).first);
+        double maxY = qMax(ranges.at(2*e).second, ranges.at(2*e+1).second);
+//            qDebug()<<"Ranges length: "<<ranges.length()<<"maxY: "<<maxY<<", minY: "<<minY;
+        double span = maxY-minY;
+        graphs[2*e]->parentPlot()->yAxis->setRange(minY-0.1*span, maxY+0.1*span);
+        graphs[2*e]->parentPlot()->replot();
     }
 }

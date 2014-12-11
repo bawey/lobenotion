@@ -20,6 +20,7 @@ QString Settings::OPT_SPELLER_INFO_STINT="spellerInfoStint";
 QString Settings::OPT_SPELLER_EPOCHS_PER_STIMULUS="spellerEpochsPerStimulus";
 QString Settings::OPT_SPELLER_PHRASE="spellerPhrase";
 QString Settings::OPT_SUBJECT_NAME="subjectName";
+QString Settings::OPT_OCTAVE_SCRIPTS_ROOT="octaveScriptsRoot";
 
 
 
@@ -146,6 +147,10 @@ void Settings::setSubjectName(QString name){
 
 QString Settings::getSpellerPhrase(){
     return getInstance()->value(Settings::OPT_SPELLER_PHRASE, "PAINT").toString().toUpper();
+}
+
+QString Settings::getOctaveScriptsRoot(){
+    return getInstance()->value(Settings::OPT_OCTAVE_SCRIPTS_ROOT, "./scripts").toString();
 }
 
 void Settings::setSpellerPhrase(QString phrase){

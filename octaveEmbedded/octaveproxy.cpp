@@ -13,9 +13,7 @@ OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
     octave_argv(0) = "embedded";
     octave_argv(1) = "-q";
     octave_main (2, octave_argv.c_str_vec (), 1);
-    feval("addpath", octave_value_list("scripts"));
-    feval("cd", octave_value_list("scripts"));
-    feval("init");
+    slotReloadScripts();
 
     if(redirectOutput){
         QString namedPipe = QString("/tmp/qlobesocket");
@@ -156,11 +154,10 @@ octave_value OctaveProxy::loadMergeAndDownsample(QString dirpath, QString subjec
 //}
 
 QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc){
-    octave_value_list args(4);
+    octave_value_list args(3);
     args(0)=modelDesc->classifier;
     args(1)=sessionDesc->getSession();
-    args(2)=modelDesc->tdMean;
-    args(3)=modelDesc->tdStd;
+    args(2)=octave_value("verbose");
     octave_value_list classified = feval("askClassifier", args);
 
     QVector<QPair<int,int>>* results = new QVector<QPair<int,int>>();
@@ -174,14 +171,13 @@ QVector<QPair<int,int>>* OctaveProxy::askClassifier(const ClassifierInfo* modelD
 
 void OctaveProxy::askClassifier(const ClassifierInfo *modelDesc, QList<const P3SessionInfo *> infos){
     octave_value testSession = mergedSession(infos);
-    octave_value_list classifier_params(4);
+    octave_value_list classifier_params(3);
 
     classifier_params(0)=modelDesc->classifier;
     classifier_params(1)=testSession;
-    classifier_params(2)=modelDesc->tdMean;
-    classifier_params(3)=modelDesc->tdStd;
+    classifier_params(2)=octave_value("verbose");
 
-    octave_value_list classified = feval("askClassifier", classifier_params);
+    feval("askClassifier", classifier_params);
     errorCheckEpilogue();
 }
 
@@ -202,6 +198,15 @@ octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> infos){
 
 ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
 
+    foreach (const P3SessionInfo* info, infos) {
+       if(info->getDimStint()!=infos.at(0)->getDimStint() ||
+               info->getHighlightStint()!=infos.at(0)->getHighlightStint()||
+               info->getRepeats()!=infos.at(0)->getRepeats()){
+           emit signalOctaveError("Training datasets' parameters mismatch!");
+           return NULL;
+       }
+    }
+
     octave_value_list args(2);
     octave_value_list merged(1);
     merged(0)=infos.at(0)->getSession();
@@ -213,9 +218,15 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
         }
     }
     qDebug()<<"embarking on classifier training";
+    //[model modelCell featsSelectCell summary]
+    //= pickClassifier(session, classification_methods='all', repeats_split='no', balancing='no', xsplit='min')
+    merged(1)=octave_value("fastest");
+    merged(2)=octave_value(3);
+    merged(3)=octave_value("no");
+    merged(4)=octave_value(5);
     octave_value_list results = feval("pickClassifier", merged);
 
-    std::string classifierString = feval("stringify", octave_value_list(results(3)))(0).string_value();
+    std::string classifierString = feval("stringify", octave_value_list(results(1)))(0).string_value();
 
     if (errorCheckEpilogue()){
         return NULL;
@@ -223,8 +234,6 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
         ClassifierInfo* desc = new ClassifierInfo();
         /** prefill the descriptor **/
         desc->classifier=results(0);
-        desc->tdMean=results(1);
-        desc->tdStd=results(2);
         desc->parameters = QString::fromStdString(classifierString);
         desc->classifier = results(0);
         return desc;
@@ -292,4 +301,9 @@ bool OctaveProxy::errorCheckEpilogue(){
         return true;
     }
     return false;
+}
+
+void OctaveProxy::slotReloadScripts(){
+    feval("cd", octave_value_list(Settings::getOctaveScriptsRoot().toStdString().c_str()));
+    feval("init");
 }

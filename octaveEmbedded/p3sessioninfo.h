@@ -15,7 +15,8 @@
 class P3SessionInfo
 {
 public:
-    P3SessionInfo(QString subject, QString spelledPhrase, bool clean, QDateTime fileCreationTime, octave_value octaveSession);
+    P3SessionInfo(QString subject, QString spelledPhrase, bool clean, QDateTime fileCreationTime, octave_value octaveSession,
+                  unsigned int dimStint, unsigned int highlightStint, unsigned short repeats);
     P3SessionInfo(octave_value octaveSession);
 
     const QString& getSubjectName() const{
@@ -36,6 +37,18 @@ public:
 
     QDateTime getCreated() const {
         return created;
+    }
+
+    unsigned int getDimStint() const {
+        return stintDim;
+    }
+
+    unsigned int getHighlightStint() const {
+        return stintHighlight;
+    }
+
+    unsigned int getRepeats() const {
+        return epochsPerStimulus;
     }
 
 private:

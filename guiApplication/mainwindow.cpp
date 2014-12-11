@@ -63,10 +63,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(actAbout, SIGNAL(triggered()), this, SLOT(slotAbout()));
     helpMenu->addAction(actAbout);
 
+    actReloadScripts = new QAction("Reload Octave scripts", helpMenu);
+    QObject::connect(actReloadScripts, SIGNAL(triggered()), master->getOctaveProxy(), SLOT(slotReloadScripts()));
+    helpMenu->addAction(actReloadScripts);
+
     menuBar()->addMenu(helpMenu);
 
     // General stuff: title
-    this->setWindowTitle("Lobenotion 0.3");
+    this->setWindowTitle("Lobenotion 0.4");
 
     // Central widget
     this->setCentralWidget(new QWidget());
@@ -78,7 +82,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     dashboardLayout = new QHBoxLayout();
     dashboardLayout->addWidget(eegPlot);
-    dashboardLayout->addWidget(metaDataWidget);
+    QVBoxLayout* metaWrapper = new QVBoxLayout();
+    metaWrapper->addWidget(metaDataWidget);
+    metaWrapper->addStretch();
+    dashboardLayout->addLayout(metaWrapper);
     metaDataWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     dashboardWidget->setLayout(dashboardLayout);
@@ -92,17 +99,17 @@ MainWindow::MainWindow(QWidget *parent) :
     stackLayout->addWidget(spellerWrapperWidget);
 
     analysisWidget = new QWidget();
-    analysisLayout = new QHBoxLayout();
+    analysisLayout = new QVBoxLayout();
+    QHBoxLayout* sessionsModelsLayout = new QHBoxLayout();
     analysisWidget->setLayout(analysisLayout);
-    analysisLayout->addWidget(sessionsWidget);
-    analysisLayout->addWidget(classifiersWidget);
+    sessionsModelsLayout->addWidget(sessionsWidget);
+    sessionsModelsLayout->addWidget(classifiersWidget);
+    analysisLayout->addLayout(sessionsModelsLayout);
     analysisLayout->addWidget(octaveWidget);
     stackLayout->addWidget(analysisWidget);
 
     stackLayout->addWidget(new QLabel("4: Preferences?"));
     stackLayout->addWidget(new QLabel("5: This program is..."));
-
-    stackLayout->setCurrentIndex(1);
 
     connectSignalsToSlots();
 

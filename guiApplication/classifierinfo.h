@@ -5,9 +5,10 @@ struct ClassifierInfo{
     QString subject;
     QString parameters;
     unsigned short charsCount;
+    unsigned short dataRepeats;
+    unsigned int dataDimStint;
+    unsigned int dataHighStint;
     octave_value classifier;
-    octave_value tdMean;
-    octave_value tdStd;
 };
 
 #endif // CLASSIFIERINFO_H

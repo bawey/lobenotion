@@ -67,6 +67,8 @@ public slots:
         emit(signalFetchedOutput(output));
     }
 
+    void slotReloadScripts();
+
 private:
 
     octave_value model;

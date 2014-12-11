@@ -18,6 +18,9 @@ public:
     static constexpr char const* SUMMARY_HEADER_ERROR="errcode";
     static constexpr char const* SUMMARY_HEADER_SUBJECT="subject";
     static constexpr char const* SUMMARY_HEADER_PHRASE="phrase";
+    static constexpr char const* SUMMARY_HEADER_DIM_STINT="dim";
+    static constexpr char const* SUMMARY_HEADER_HIGHLIGHT_STINT="highlight";
+    static constexpr char const* SUMMARY_HEADER_REPEATS="repeats";
 
 private:
     bool isOnline = false;

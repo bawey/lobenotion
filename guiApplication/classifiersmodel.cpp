@@ -45,6 +45,9 @@ void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>
 
     desc->charsCount=charsCount;
     desc->subject=subjects;
+    desc->dataRepeats=sharedInfos->at(0)->getRepeats();
+    desc->dataHighStint=sharedInfos->at(0)->getHighlightStint();
+    desc->dataDimStint=sharedInfos->at(0)->getDimStint();
 
     beginInsertRows(QModelIndex(), classifiers.length(), classifiers.length());
     this->classifiers.append(desc);
@@ -63,7 +66,7 @@ int ClassifiersModel::rowCount(const QModelIndex & parent) const{
 }
 int ClassifiersModel::columnCount(const QModelIndex &parent) const{
     if(parent.isValid()){}
-    return 3;
+    return 6;
 }
 QVariant ClassifiersModel::data(const QModelIndex &index, int role) const {
     if(role==Qt::DisplayRole){
@@ -74,6 +77,12 @@ QVariant ClassifiersModel::data(const QModelIndex &index, int role) const {
             case 1:
                 return record->charsCount;
             case 2:
+                return record->dataRepeats;
+            case 3:
+                return record->dataHighStint;
+            case 4:
+                return record->dataDimStint;
+            case 5:
                 return record->parameters;
             default:
                 return QString("N/A");
@@ -90,9 +99,15 @@ QVariant ClassifiersModel::headerData(int section, Qt::Orientation orientation, 
                 case 0:
                     return QString("Subject");
                 case 1:
-                    return QString("Chars used");
+                    return QString("Chars");
                 case 2:
-                    return QString("Classifier details");
+                    return "Repeats";
+                case 3:
+                    return "HiLite";
+                case 4:
+                    return "Dim";
+                case 5:
+                    return QString("Classifier");
                 default:
                     return QString("N/A");
             }

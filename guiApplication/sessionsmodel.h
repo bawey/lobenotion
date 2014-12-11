@@ -33,7 +33,8 @@ signals:
 public slots:
     void slotLoadSession(QStringList nameroots);
 private:
-    bool parseSummaryFile(QString path, QString& subject, QString& phrase, QDateTime& created);
+    bool parseSummaryFile(QString path, QString& subject, QString& phrase, QDateTime& created, QString& dimStint,
+                          QString& highlightStint, QString& repeats);
     QVector<P3SessionInfo*> sessions;
 };
 

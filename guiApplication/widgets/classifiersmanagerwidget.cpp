@@ -16,7 +16,11 @@ ClassifiersManagerWidget::ClassifiersManagerWidget(QWidget *parent) :
     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
     for (int c = 0; c < tableView->horizontalHeader()->count(); ++c)
     {
-        tableView->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
+        QHeaderView::ResizeMode resizeMode = QHeaderView::ResizeToContents;
+        if( c==tableView->horizontalHeader()->count()-1 ){
+            resizeMode = QHeaderView::Stretch;
+        }
+        tableView->horizontalHeader()->setSectionResizeMode(c, resizeMode);
     }
 
     buttonDrop = new QPushButton("Drop");

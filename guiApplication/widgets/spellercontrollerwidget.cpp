@@ -20,9 +20,9 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     daqSignalProblem->setText("Cannot start data taking due to noisy signal.");
     daqSignalProblem->setWordWrap(true);
     daqSignalProblem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    this->layout()->addWidget(buttonStartDaq);
-    this->layout()->addWidget(buttonStopDaq);
-    this->layout()->addWidget(daqSignalProblem);
+    mainLayout->addWidget(buttonStartDaq);
+    mainLayout->addWidget(buttonStopDaq);
+    mainLayout->addWidget(daqSignalProblem);
 
 
     modeStack = new QStackedLayout();
@@ -40,9 +40,6 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     parentDir->setText(Settings::getEegDumpPath());
     offlineForm->addRow("Parent dir", parentDir);
 
-    QWidget* onlineContainer = new QWidget();
-    onlineContainer->setLayout(onlineForm);
-
     phraseLength = new QSpinBox();
     phraseLength->setMaximum(100);
     onlineForm->addRow("Phrase length", phraseLength);
@@ -59,6 +56,17 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     classifierCombo->view()->setMinimumWidth(666);
     onlineForm->addRow("Classifier", classifierCombo);
 
+    confidenceSetoffPeriod=new QSpinBox();
+    confidenceSetoffPeriod->setValue(Settings::getSpellerEpochsPerStimulus());
+    confidenceThreshold=new QDoubleSpinBox();
+    confidenceThreshold->setMinimum(0.0);
+    confidenceThreshold->setMaximum(1.0);
+    confidenceThreshold->setSingleStep(0.01);
+    confidenceThreshold->setAccelerated(true);
+
+    onlineForm->addRow("Confidence thr.", confidenceThreshold);
+    onlineForm->addRow("Min repeats", confidenceSetoffPeriod);
+
     recognizedCharacters = new QLabel();
     onlineForm->addRow("Decoded", recognizedCharacters);
 
@@ -66,14 +74,16 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     connect(classifiersModel, SIGNAL(signalCurrentClassifierChanged(int)), classifierCombo, SLOT(setCurrentIndex(int)));
     connect(classifierCombo, SIGNAL(currentIndexChanged(int)), classifiersModel, SLOT(slotSetCurrentClassifier(int)));
 
+    QWidget* onlineContainer = new QWidget();
+    onlineContainer->setLayout(onlineForm);
+
     QWidget* offlineContainer = new QWidget();
     offlineContainer->setLayout(offlineForm);
 
     modeStack->addWidget(offlineContainer);
     modeStack->addWidget(onlineContainer);
-    modeStack->setSizeConstraint(QLayout::SetFixedSize);
+    modeStack->setSizeConstraint(QLayout::SetMinimumSize);
 
-    mainLayout->addLayout(modeStack);
 
     formLayout=new QFormLayout();
     form=new QWidget();
@@ -97,21 +107,28 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     interPeriodGap->setMaximum(10000);
     interPeriodGap->setValue(Settings::getSpellerInterPeriodStint());
     formLayout->addRow("Inter-period gap", interPeriodGap);
-
     //void startDataTaking(int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
 
-    this->layout()->addWidget(form);
+    mainLayout->addWidget(form);
+    mainLayout->addLayout(modeStack);
+    mainLayout->addStretch(100);
+
 
     labelError = new QLabel();
     labelError->setWordWrap(true);
 
-    this->layout()->addWidget(labelError);
+    mainLayout->addWidget(labelError);
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    ((QVBoxLayout*) this->layout())->addStretch();
+    ((QVBoxLayout*) mainLayout)->addStretch();
 
     // CONNECT INTERNAL SLOTS
     connect(buttonStartDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedStart()));
     connect(buttonStopDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedFinish()));
+
+//    form->setStyleSheet("background-color: pink;");
+//    offlineContainer->setStyleSheet("background-color: yellow;");
+//    onlineContainer->setStyleSheet("background-color: blue;");
+
 }
 
 void SpellerControllerWidget::connectSignalsToSlots(){
@@ -169,13 +186,17 @@ void SpellerControllerWidget::slotButtonPressedStart(){
 }
 
 void SpellerControllerWidget::slotSignalFine(bool isFine){
+    QPalette palette = daqSignalProblem->palette();
     if(buttonStartDaq->isEnabled() && !isFine){
-        daqSignalProblem->show();
+        QColor color(255,0,0,255);
+        palette.setColor(daqSignalProblem->foregroundRole(), color);
         buttonStartDaq->setEnabled(false);
     }else if(!buttonStopDaq->isEnabled() && !buttonStartDaq->isEnabled() && isFine){ //if data taking not in progress and START button disabled due to bad signal
-        daqSignalProblem->hide();
+        QColor color(0,0,0,0);
+        palette.setColor(daqSignalProblem->foregroundRole(), color);
         buttonStartDaq->setEnabled(true);
     }
+    daqSignalProblem->setPalette(palette);
 }
 
 void SpellerControllerWidget::slotSpellerError(unsigned char code){
@@ -217,9 +238,9 @@ void SpellerControllerWidget::switchOffline(){
 }
 
 void SpellerControllerWidget::slotRecognizedCharacter(QChar character){
-    recognizedCharacters->setText(recognizedCharacters->text().append(character));
+    recognizedCharacters->setText(recognizedCharacters->text().append(character).append(" "));
 }
 
 void SpellerControllerWidget::slotRecognizedCharacter(QString charStr){
-    recognizedCharacters->setText(recognizedCharacters->text().append(charStr));
+    recognizedCharacters->setText(recognizedCharacters->text().append(charStr).append(" "));
 }
