@@ -43,6 +43,18 @@ void SpellerDumper::eegFrame(QSharedPointer<EegFrame> eegFrame){
             for(int c=0; c<eegFrame->CONTACTS_NO; ++c){
                 onlineData->append(eegFrame->getValue(c));
             }
+
+            //a trick to prevent buffer underrun at the end of an epoch
+            if(waitForCompleteEpoch>0){
+                epochData->append(Timer::getTime());
+                for(int c=0; c<eegFrame->CONTACTS_NO; ++c){
+                    epochData->append(eegFrame->getValue(c));
+                }
+
+                if(--waitForCompleteEpoch==0){
+                    emit signalOnlineEpochCaptured(epochData, epochMeta, epochTarg);
+                }
+            }
         }else{
             // it's not so abnormal - between the periods data keeps coming. a highlight would be more indicative
             // qWarning()<<"SpellerDumper: eegFrame received while in online mode, yet there is no ongoing period.";
@@ -219,4 +231,21 @@ void SpellerDumper::closeOnlinePeriod(){
 
     onlinePeriodOngoing=false;
     emit onlinePeriodCaptured(shareData, shareMeta, sharedTrg);
+}
+
+// this one needs either to send pure pointers or to make a copy of passed objects.
+// the latter solves the issue of data being appended simultaneously.
+// however, it's very inefficient //copy after each period, decimate after each period...
+
+//also, the moment a request is received there is not enough frames in the buffer following the last intensification
+
+// maybe: store info that a period has ended.
+// then count the frames until 120...
+
+void SpellerDumper::slotOnlineEpochEnded(){
+    this->waitForCompleteEpoch = 100;
+
+    this->epochData = QSharedPointer<QVector<int>>(new QVector<int>(*onlineData));
+    this->epochMeta = QSharedPointer<QVector<int>>(new QVector<int>(*onlineMeta));
+    this->epochTarg = QSharedPointer<QVector<int>>(new QVector<int>(*onlineTrg));
 }

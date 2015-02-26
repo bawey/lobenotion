@@ -29,7 +29,7 @@ public:
 signals:
 
     void signalCurrentClassifierChanged(int);
-    void signalSymbolClassified(int row, int column);
+    void signalSymbolClassified(int row, int column, float confidence);
 public slots:
     void slotTrainModel(QSharedPointer<QList<const P3SessionInfo *> > sharedInfos);
     void slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testData);

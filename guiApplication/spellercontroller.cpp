@@ -60,9 +60,14 @@ void SpellerController::connectSignalsToSlots(){
     connect(this, SIGNAL(onlineModeEnded()), dumper, SLOT(closeOnlineMode()));
     connect(this, SIGNAL(onlinePeriodStarted()), dumper, SLOT(startOnlinePeriod()));
     connect(this, SIGNAL(onlinePeriodEnded()), dumper, SLOT(closeOnlinePeriod()));
+    connect(this, SIGNAL(signalOnlineEpochEnded()), dumper, SLOT(slotOnlineEpochEnded()));
 
     connect(dumper, SIGNAL(onlinePeriodCaptured(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
             this, SLOT(slotCapturedOnlinePeriod(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)));
+
+    connect(dumper, SIGNAL(signalOnlineEpochCaptured(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
+            this, SLOT(slotCapturedOnlineEpoch(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)));
+
 }
 
 SpellerController::~SpellerController(){
@@ -178,9 +183,15 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         // signal quality is periodically checked in some parts of this loop
         // a class member field, signalFine, can be set via a signal-slot while the loop executes
         signalNeverBad = signalNeverBad && flagSignalFine;
-
-        emit onlinePeriodStarted();
-        for(int flashNo=0; flashNo<params->epochsPerStimulus && signalNeverBad && !flagAbort; ++flashNo){
+        if(params->isOnline){
+            emit onlinePeriodStarted();
+        }
+        // reset the early classification flag
+        flagPeriodClassifiedEarly = false;
+        for(int flashNo=0; flashNo<params->epochsPerStimulus && signalNeverBad && !flagAbort
+            && !flagPeriodClassifiedEarly; ++flashNo){
+            // a bit redundant variable it seems
+            online_epochsElapsed = flashNo+1;
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
             for(int blockNo = 0; blockNo<stimuli->length() && signalNeverBad && !flagAbort; ++blockNo){
@@ -195,13 +206,18 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
                 signalNeverBad = signalNeverBad && flagSignalFine;
             }
             delete stimuli;
+            // too late, now the EndOfPeriod classification will take place
+            if( params->isOnline && flashNo<params->epochsPerStimulus-1 ){
+                emit signalOnlineEpochEnded();
+            }
         }
         // qDebug()<<QString("inter-period sleep for target %1 of %2 ...").arg(targetIdx+1).arg(phrase.size());
         emit commandDimKeyboard();
         //thread->msleep(interPeriodInterval);
         this->sleepFrameAligned(params->stintInterPeriod);
-
-        emit onlinePeriodEnded();
+        if(params->isOnline){
+            emit onlinePeriodEnded();
+        }
     }
     // qDebug()<<QString("### DONE in thread: %1 ###").arg(QThread::currentThread()->objectName());
     if(!signalNeverBad){
@@ -269,12 +285,25 @@ void SpellerController::slotCapturedOnlinePeriod(QSharedPointer<QVector<int> > d
     emit requestPeriodClassification(data, meta, trg);
 }
 
-void SpellerController::slotSymbolRecognized(int row, int col){
-    int symbolNo = this->symbolRowColToNumber(row, col);
-    QString symbolStr = this->keyboardSymbols.at(symbolNo);
-    if(symbolStr.length()==1){
-        emit signalSymbolRecognized(symbolStr.at(0));
-    }else{
-        emit signalSymbolRecognized(symbolStr);
+void SpellerController::slotCapturedOnlineEpoch(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
+    qDebug()<<"Got an epoch captured online: "<<data->length()<<" samples of data, "<<meta->length()<<" samples of meta and "<<trg->length()<<" samples of trg";
+    emit requestPeriodClassification(data, meta, trg);
+}
+
+/**
+    simplified: print character only if confidence threshold was met
+**/
+void SpellerController::slotSymbolRecognized(int row, int col, float confidence){
+    if(this->online_epochsElapsed > Settings::getOnlineMinEpochs() &&
+            confidence>Settings::getConfidenceThreshold() && !flagPeriodClassifiedEarly){
+        //TODO might need synchro
+        flagPeriodClassifiedEarly = true;
+        int symbolNo = this->symbolRowColToNumber(row, col);
+        QString symbolStr = this->keyboardSymbols.at(symbolNo);
+        if(symbolStr.length()==1){
+            emit signalSymbolRecognized(symbolStr.at(0));
+        }else{
+            emit signalSymbolRecognized(symbolStr);
+        }
     }
 }

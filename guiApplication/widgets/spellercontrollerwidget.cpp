@@ -57,8 +57,9 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     onlineForm->addRow("Classifier", classifierCombo);
 
     confidenceSetoffPeriod=new QSpinBox();
-    confidenceSetoffPeriod->setValue(Settings::getSpellerEpochsPerStimulus());
+    confidenceSetoffPeriod->setValue(Settings::getOnlineMinEpochs());
     confidenceThreshold=new QDoubleSpinBox();
+    confidenceThreshold->setValue(Settings::getConfidenceThreshold());
     confidenceThreshold->setMinimum(0.0);
     confidenceThreshold->setMaximum(1.0);
     confidenceThreshold->setSingleStep(0.01);
@@ -124,6 +125,8 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     // CONNECT INTERNAL SLOTS
     connect(buttonStartDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedStart()));
     connect(buttonStopDaq, SIGNAL(clicked()), this, SLOT(slotButtonPressedFinish()));
+    connect(confidenceThreshold, SIGNAL(valueChanged(double)), this, SLOT(slotChangedConfidenceThreshold(double)));
+    connect(confidenceSetoffPeriod, SIGNAL(valueChanged(int)), this, SLOT(slotChangedOnlineMinEpochs(int)));
 
 //    form->setStyleSheet("background-color: pink;");
 //    offlineContainer->setStyleSheet("background-color: yellow;");
@@ -135,6 +138,8 @@ void SpellerControllerWidget::connectSignalsToSlots(){
 //    QObject::connect(daqStart, SIGNAL(clicked()), this, SLOT(slotDaqStart()));
 //    QObject::connect(daqStop, SIGNAL(clicked()), this, SLOT(slotDaqStop()));
 //    QObject::connect(daqStop, SIGNAL(clicked()), spellerWidget, SLOT(trainingResetFramesCount()));
+
+
 }
 
 

@@ -5,8 +5,7 @@ INCLUDEPATH += . .. guiApplication octaveEmbedded
 #this shoud just be introduced by octaveEmbedded.pri, but it fails to work that way...
 INCLUDEPATH += /usr/include/octave-3.8.1/ /usr/include/octave-3.8.1/octave
 
-SOURCES += $$PWD/guiApplication/qemokitd.cpp \
-    $$PWD/guiApplication/eegframe.cpp \
+SOURCES += $$PWD/guiApplication/eegframe.cpp \
     $$PWD/guiApplication/settings.cpp \
     $$PWD/guiApplication/metaframe.cpp \
     $$PWD/guiApplication/eegdaq.cpp \
@@ -25,8 +24,7 @@ SOURCES += $$PWD/guiApplication/qemokitd.cpp \
 
 
 
-HEADERS += $$PWD/guiApplication/qemokitd.h \
-    $$PWD/guiApplication/eegframe.h \
+HEADERS += $$PWD/guiApplication/eegframe.h \
     $$PWD/guiApplication/settings.h \
     $$PWD/guiApplication/metaframe.h \
     $$PWD/guiApplication/eegdaq.h \
@@ -42,7 +40,8 @@ HEADERS += $$PWD/guiApplication/qemokitd.h \
     $$PWD/guiApplication/sessionsmodel.h \
     $$PWD/guiApplication/classifiersmodel.h \
     $$PWD/guiApplication/classifierinfo.h \
-    $$PWD/octaveEmbedded/octaveoutputreader.h
+    $$PWD/octaveEmbedded/octaveoutputreader.h \
+    $$PWD/octaveEmbedded/ClassifierOutput.h
 
 
 FORMS    +=

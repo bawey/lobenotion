@@ -80,6 +80,8 @@ public:
 private:
     bool flagSignalFine=false;
     bool flagAbort=false;
+    int online_epochsElapsed = 0;
+    bool flagPeriodClassifiedEarly = false;
 
     EegDaq* daq;
 
@@ -138,6 +140,7 @@ signals:
 
     void onlinePeriodStarted();
     void onlinePeriodEnded();
+    void signalOnlineEpochEnded();
 
     /** scenario-related signals **/
     void commandRowColHighlight(short rowOrCol);
@@ -149,7 +152,8 @@ signals:
 
     void error(unsigned char code);
 
-    void requestPeriodClassification(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
+    void requestPeriodClassification(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta,
+                                     QSharedPointer<QVector<int>> trg);
 
     void signalSymbolRecognized(QChar symbol);
     void signalSymbolRecognized(QString symbol);
@@ -172,8 +176,9 @@ public slots:
     void slotSignalFine(bool isIt);
 
     void slotCapturedOnlinePeriod(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
+    void slotCapturedOnlineEpoch(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
-    void slotSymbolRecognized(int row, int col);
+    void slotSymbolRecognized(int row, int col, float confidence);
 };
 
 #endif // SPELLERCONTROLLER_H

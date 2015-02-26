@@ -49,6 +49,21 @@ public:
     static unsigned short getSpellerMatrixSize();
     static QString getOctaveScriptsRoot();
 
+
+    static int getDecimationFactcor();
+
+    static int getTrainCvRate();
+
+    static int getTrainPeriodSplitRate();
+
+    static QString getTrainBalancing();
+
+    static float getConfidenceThreshold();
+    static void setConfidenceThreshold(float value);
+
+    static int getOnlineMinEpochs();
+    static void setOnlineMinEpochs(int value);
+
 private:
     static QString DEF_SPELLER_CHARSET;
 
@@ -69,6 +84,13 @@ private:
     static QString OPT_SPELLER_PHRASE;
     static QString OPT_OCTAVE_SCRIPTS_ROOT;
 
+    static QString OPT_TRAIN_DECIMATION_FACTOR;
+    static QString OPT_TRAIN_XV_RATE;
+    static QString OPT_TRAIN_PERIOD_SPLIT_RATE;
+    static QString OPT_TRAIN_BALANCING;
+
+    static QString OPT_ONLINE_CONFIDENCE;
+    static QString OPT_ONLINE_MIN_EPOCHS;
 
     static Settings* getInstance();
     static Settings* instance;

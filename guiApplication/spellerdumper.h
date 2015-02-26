@@ -23,6 +23,7 @@ public:
     static constexpr char const* SUMMARY_HEADER_REPEATS="repeats";
 
 private:
+    short waitForCompleteEpoch = 0;
     bool isOnline = false;
     unsigned int onlineDataSize = 0;
     unsigned int onlineMetaSize = 0;
@@ -43,6 +44,11 @@ private:
     QVector<int>* onlineMeta;
     QVector<int>* onlineData;
     QVector<int>* onlineTrg;
+
+    QSharedPointer<QVector<int>> epochMeta;
+    QSharedPointer<QVector<int>> epochData;
+    QSharedPointer<QVector<int>> epochTarg;
+
 
     void determineParentDirectory(QString suggestedPath);
 
@@ -67,9 +73,11 @@ public slots:
     void startOnlinePeriod();
     void closeOnlinePeriod();
 
+    void slotOnlineEpochEnded();
+
 signals:
    void onlinePeriodCaptured(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> targets);
-
+   void signalOnlineEpochCaptured(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> targets);
 };
 
 #endif // SPELLERDUMPER_H

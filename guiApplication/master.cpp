@@ -45,7 +45,8 @@ void Master::connectModules(){
     connect(spellerController, SIGNAL(requestPeriodClassification(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
             classifiersModel, SLOT(slotAskCurrentClassifier(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)));
 
-    connect(classifiersModel, SIGNAL(signalSymbolClassified(int,int)), spellerController, SLOT(slotSymbolRecognized(int,int)));
+    connect(classifiersModel, SIGNAL(signalSymbolClassified(int,int,float)), spellerController,
+            SLOT(slotSymbolRecognized(int,int,float)));
 
     connect(octaveProxy, SIGNAL(signalOctaveError(QString)), this, SLOT(slotErrorRelay(QString)));
 }

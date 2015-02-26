@@ -1,6 +1,7 @@
 #include "classifiersmodel.h"
 #include <QDebug>
 #include <octaveEmbedded/octaveproxy.h>
+#include <octaveEmbedded/ClassifierOutput.h>
 #include <master.h>
 #include <octave/toplev.h>
 #include <octave/octave.h>
@@ -136,12 +137,14 @@ void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > da
             qWarning()<<"Null P3Session info returned by toP3Session";
         } else {
             qDebug()<<"Converting to P3Session took "<<(Timer::getTime()-timestart)<<" ms";
-            QVector<QPair<int,int>>* results = Master::getInstance()->getOctaveProxy()->askClassifier(classifiers.at(currentClassifier), info);
+            QSharedPointer<QVector<ClassifierOutput*>> results = Master::getInstance()->getOctaveProxy()->askClassifier(classifiers.at(currentClassifier), info);
             QString output = "Results: ";
             for(int i=0; i<results->length(); ++i){
-                QPair<int, int> pair = results->at(i);
-                output.append(QString::number(pair.first)).append(" x ").append(QString::number(pair.second)).append(" ");
-                emit signalSymbolClassified(qAbs(pair.first), qAbs(pair.second));
+                ClassifierOutput* co = results->at(i);
+                output.append(QString::number(co->row)).append(" x ").append(QString::number(co->column)).append("[ ")
+                        .append(QString::number(co->confidence)).append("] ");
+                //Well, this should depend on: confidence, epochs elapsed...
+                emit signalSymbolClassified(qAbs(co->row), qAbs(co->column), co->confidence);
             }
             qDebug()<<"And jointly with clasification: "<<(Timer::getTime()-timestart)<<"ms. "<<output;
 

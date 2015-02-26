@@ -21,8 +21,12 @@ QString Settings::OPT_SPELLER_EPOCHS_PER_STIMULUS="spellerEpochsPerStimulus";
 QString Settings::OPT_SPELLER_PHRASE="spellerPhrase";
 QString Settings::OPT_SUBJECT_NAME="subjectName";
 QString Settings::OPT_OCTAVE_SCRIPTS_ROOT="octaveScriptsRoot";
-
-
+QString Settings::OPT_TRAIN_DECIMATION_FACTOR="trainDecimationFactor";
+QString Settings::OPT_TRAIN_XV_RATE="trainXvRate";
+QString Settings::OPT_TRAIN_PERIOD_SPLIT_RATE="trainPeriodSplitRate";
+QString Settings::OPT_TRAIN_BALANCING="trainBalancing";
+QString Settings::OPT_ONLINE_CONFIDENCE="onlineConfidenceThreshold";
+QString Settings::OPT_ONLINE_MIN_EPOCHS="onlineMinEpochs";
 
 Settings* Settings::instance;
 
@@ -155,4 +159,36 @@ QString Settings::getOctaveScriptsRoot(){
 
 void Settings::setSpellerPhrase(QString phrase){
     getInstance()->setValue(Settings::OPT_SPELLER_PHRASE, phrase);
+}
+
+int Settings::getDecimationFactcor(){
+    return getInstance()->value(Settings::OPT_TRAIN_DECIMATION_FACTOR, "8").toInt();
+}
+
+int Settings::getTrainCvRate(){
+    return getInstance()->value(Settings::OPT_TRAIN_XV_RATE, "5").toInt();
+}
+
+int Settings::getTrainPeriodSplitRate(){
+    return getInstance()->value(Settings::OPT_TRAIN_PERIOD_SPLIT_RATE, "3").toInt();
+}
+
+QString Settings::getTrainBalancing(){
+    return getInstance()->value(Settings::OPT_TRAIN_BALANCING, "no").toString();
+}
+
+float Settings::getConfidenceThreshold(){
+    return getInstance()->value(Settings::OPT_ONLINE_CONFIDENCE, "0.5").toFloat();
+}
+
+void Settings::setConfidenceThreshold(float value){
+    getInstance()->setValue(Settings::OPT_ONLINE_CONFIDENCE, value);
+}
+
+int Settings::getOnlineMinEpochs(){
+    return getInstance()->value(Settings::OPT_ONLINE_MIN_EPOCHS, "5").toInt();
+}
+
+void Settings::setOnlineMinEpochs(int value){
+    getInstance()->setValue(Settings::OPT_ONLINE_MIN_EPOCHS, value);
 }

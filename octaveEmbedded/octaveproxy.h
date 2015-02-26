@@ -19,8 +19,7 @@
 #include <QVector>
 #include <QPair>
 #include <classifierinfo.h>
-
-#define DOWNSAMPLING_RATE 6
+#include <octaveEmbedded/ClassifierOutput.h>
 
 #define P3MultiSession "P3SessionLobeShorthand"
 #define P3SingleSession "P3SessionLobenotion"
@@ -33,11 +32,9 @@ public:
     ~OctaveProxy();
 
     ClassifierInfo *pickBestModel(QList<const P3SessionInfo*>);
-//    void pickBestModel(QString dirpath, QString subject, QList<unsigned short> sessions);
-    octave_value mergedSession(QList<const P3SessionInfo*>);
-    void askClassifier(const ClassifierInfo* modelDesc, QList<const P3SessionInfo *>);
 
-    QVector<QPair<int,int>>* askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc);
+    QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const ClassifierInfo* modelDesc, QList<const P3SessionInfo *>);
+    QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc);
 
 signals:
 
@@ -45,16 +42,7 @@ signals:
     void signalOctaveError(QString errmsg);
 
 public slots:
-    void demo();
-
-    void simpleTrainModel(QString dirpath, QString subject, QList<unsigned short> sessions);
-    void simpleClassifySessions(QString dirpath, QString subject, QList<unsigned short> sessions);
     void interpreter();
-
-
-    void diag();
-
-    octave_value loadMergeAndDownsample(QString dirpath, QString subject, QList<unsigned short> sessions);
 
     P3SessionInfo* loadP3Session(QString absNameroot);
 
@@ -71,15 +59,17 @@ public slots:
 
 private:
 
-    octave_value model;
-    octave_value tr_mean;
-    octave_value tr_std;
-
     QThread outputThread;
     OctaveOutputReader* outputReader;
 
     bool errorCheckEpilogue();
+    /**
+     * @brief mergedSession used to merge several sessions into one when starting a training
+     * @return
+     */
+    octave_value mergedSession(QList<const P3SessionInfo*>);
 
+    QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const octave_value *classifier, const octave_value* session);
 };
 
 #endif // OCTAVEPROXY_H

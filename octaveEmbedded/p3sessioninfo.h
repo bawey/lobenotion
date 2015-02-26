@@ -31,6 +31,10 @@ public:
         return loadedSession;
     }
 
+    const octave_value* getSessionPtr() const{
+        return &loadedSession;
+    }
+
     bool isClean() const{
         return clean;
     }

@@ -11,6 +11,7 @@
 #include <QComboBox>
 #include <QStackedLayout>
 #include <QDoubleSpinBox>
+#include <settings.h>
 
 class SpellerControllerWidget : public QWidget
 {
@@ -68,6 +69,14 @@ public slots:
     void switchOffline();
     void slotRecognizedCharacter(QChar character);
     void slotRecognizedCharacter(QString charStr);
+
+    void slotChangedConfidenceThreshold(double value){
+        Settings::setConfidenceThreshold((float)value);
+    }
+
+    void slotChangedOnlineMinEpochs(int value){
+        Settings::setOnlineMinEpochs(value);
+    }
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H
