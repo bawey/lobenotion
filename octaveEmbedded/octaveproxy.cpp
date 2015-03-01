@@ -222,6 +222,6 @@ bool OctaveProxy::errorCheckEpilogue(){
 }
 
 void OctaveProxy::slotReloadScripts(){
-    feval("cd", octave_value_list(Settings::getOctaveScriptsRoot().toStdString().c_str()));
+    feval("cd", octave_value_list(Settings::octaveScriptsRoot().toStdString().c_str()));
     feval("init");
 }

@@ -18,6 +18,7 @@ public:
     bool signalFine() const;
 
 private:
+    bool broadcasted = false;
     bool signalsFineSoFar;
     void processMetaFrame(QSharedPointer<MetaFrame>);
 
@@ -25,6 +26,7 @@ signals:
     void signalFine(bool isFine);
 public slots:
     void metaFrame(QSharedPointer<MetaFrame> eegFrame);
+    void configurationChanged();
 
 };
 

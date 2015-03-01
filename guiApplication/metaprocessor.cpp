@@ -3,6 +3,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QDebug>
+#include <settings.h>
 
 MetaProcessor::MetaProcessor() :
     QObject()
@@ -20,15 +21,21 @@ void MetaProcessor::metaFrame(QSharedPointer<MetaFrame> eegFrame){
 
 void MetaProcessor::processMetaFrame(QSharedPointer<MetaFrame> framePtr){
     bool signalsFineNow=true;
+    int poorChannels = 0;
     for(unsigned char i=0; i<EegFrame::CONTACTS_NO; ++i){
-        //!!!! ignore quality
-        if(framePtr->getQuality(i)<0.0){
-            signalsFineNow=false;
-            break;
+        if(framePtr->getQuality(i)<Settings::qcGoodnessLevel()){
+            ++poorChannels;
         }
     }
-    if(signalsFineNow!=this->signalsFineSoFar){
+    signalsFineNow = poorChannels <= Settings::qcChannelsTolerance();
+    if(!broadcasted || signalsFineNow!=this->signalsFineSoFar){
+        broadcasted = true;
         signalsFineSoFar = signalsFineNow;
         emit signalFine(signalsFineNow);
     }
+}
+
+void MetaProcessor::configurationChanged(){
+    qDebug()<<"broadcastong settings-update forced signal quality";
+    emit signalFine(signalsFineSoFar);
 }

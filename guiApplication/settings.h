@@ -8,46 +8,35 @@ class Settings : public QSettings
 {
     Q_OBJECT
 public:
+    static Settings* getInstance();
+
     static bool isDummyModeEnabled();
     static bool isDummyDaqNoisy();
-
-    static void setDummyModeEnabled(bool isIt);
-
     static bool isEegVisualizerEnabled();
-    static void setEegVisualizerEnabled(bool isIt);
 
     static bool isTrainingMode();
-    static void setTrainingMode(bool trueFalse);
 
     static int getSpellerHighlightStint();
-    static void setSpellerHighlightStint(int thestint);
 
     static int getSpellerDimStint();
-    static void setSpellerDimStint(int thestint);
 
     static int getSpellerInfoStint();
-    static void setSpellerInfoStint(int thestint);
 
     static int getSpellerInterPeriodStint();
-    static void setSpellerInterPeriodStint(int thestint);
 
     static int getSpellerEpochsPerStimulus();
-    static void setSpellerEpochsPerStimulus(int epochs);
 
     static QString getEegDumpPath();
-    static void setEegDumpPath(QString newPath);
 
     static QString getSubjectName();
-    static void setSubjectName(QString name);
 
     static QString getSpellerPhrase();
-    static void setSpellerPhrase(QString phrase);
 
     //these can for now only be set in the file and taken into account upon restarting the program
     static QString getMetaDumpPath(); // Deprecated, I think
     static QString getSpellerCharset();
     static unsigned short getSpellerMatrixSize();
-    static QString getOctaveScriptsRoot();
+    static QString octaveScriptsRoot();
 
 
     static int getDecimationFactcor();
@@ -59,10 +48,13 @@ public:
     static QString getTrainBalancing();
 
     static float getConfidenceThreshold();
-    static void setConfidenceThreshold(float value);
 
     static int getOnlineMinEpochs();
-    static void setOnlineMinEpochs(int value);
+
+    static bool qcInterrupt();
+    static double qcGoodnessLevel();
+    static int qcStrictness();
+    static int qcChannelsTolerance();
 
 private:
     static QString DEF_SPELLER_CHARSET;
@@ -92,15 +84,38 @@ private:
     static QString OPT_ONLINE_CONFIDENCE;
     static QString OPT_ONLINE_MIN_EPOCHS;
 
-    static Settings* getInstance();
+    static QString OPT_QC_INTERRUPT;
+    static QString OPT_QC_GOODNESS;
+    static QString OPT_QC_STRICTNESS;
+    static QString OPT_QC_CHANNELS_TOLERANCE;
+
     static Settings* instance;
     explicit Settings();
     Settings(Settings &);
+
+    void updateValue(const QString & key, const QVariant & value);
     
 signals:
+    void configurationChanged();
     
 public slots:
-    
+    static void setDummyModeEnabled(bool isIt);
+    static void setEegVisualizerEnabled(bool isIt);
+    static void setSpellerHighlightStint(int thestint);
+    static void setSpellerDimStint(int thestint);
+    static void setSpellerInfoStint(int thestint);
+    static void setSpellerInterPeriodStint(int thestint);
+    static void setSpellerEpochsPerStimulus(int epochs);
+    static void setEegDumpPath(QString newPath);
+    static void setSubjectName(QString name);
+    static void setSpellerPhrase(QString phrase);
+    static void setConfidenceThreshold(float value);
+    static void setOnlineMinEpochs(int value);
+    static void setQcInterrupt(bool);
+    static void setQcGoodnessLevel(double);
+    static void setQcStrictness(int);
+    static void setQcChannelsTolerance(int);
+    static void setOctaveScriptsRoot(QString value);
 };
 
 #endif // SETTINGS_H

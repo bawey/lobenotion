@@ -49,6 +49,7 @@ private:
     QLabel* labelError;
 
     void connectSignalsToSlots();
+    void adaptButtonsState(bool inrun);
 
 signals:
     void signalDataTakingStart(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
@@ -69,7 +70,7 @@ public slots:
     void switchOffline();
     void slotRecognizedCharacter(QChar character);
     void slotRecognizedCharacter(QString charStr);
-
+    void revalidate();
     void slotChangedConfidenceThreshold(double value){
         Settings::setConfidenceThreshold((float)value);
     }
@@ -77,6 +78,10 @@ public slots:
     void slotChangedOnlineMinEpochs(int value){
         Settings::setOnlineMinEpochs(value);
     }
+    void slotOnlineModeStart();
+    void slotOnlineModeEnd();
+
+    void configurationChanged();
 };
 
 #endif // SPELLERCONTROLLERWIDGET_H

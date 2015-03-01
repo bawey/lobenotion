@@ -24,6 +24,7 @@
 #include <widgets/sessionsmanagerwidget.h>
 #include <widgets/octaveoutputwidget.h>
 #include <widgets/classifiersmanagerwidget.h>
+#include <widgets/settingswidget.h>
 
 class MainWindow : public QMainWindow
 {
@@ -38,6 +39,7 @@ private:
     SessionsManagerWidget* sessionsWidget;
     OctaveOutputWidget* octaveWidget;
     ClassifiersManagerWidget* classifiersWidget;
+    SettingsWidget* settingsWidget;
 
     // LAYOUT COMPONENTS:
     QStackedLayout* stackLayout;

@@ -2,7 +2,7 @@
 #include <QMutex>
 #include <QApplication>
 #include <QDir>
-
+#include <QDebug>
 
 QString Settings::DEF_SPELLER_CHARSET="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0";
 
@@ -28,6 +28,11 @@ QString Settings::OPT_TRAIN_BALANCING="trainBalancing";
 QString Settings::OPT_ONLINE_CONFIDENCE="onlineConfidenceThreshold";
 QString Settings::OPT_ONLINE_MIN_EPOCHS="onlineMinEpochs";
 
+QString Settings::OPT_QC_INTERRUPT = "qcInterrupt";
+QString Settings::OPT_QC_GOODNESS = "qcGoodness";
+QString Settings::OPT_QC_STRICTNESS = "qcStrictness";
+QString Settings::OPT_QC_CHANNELS_TOLERANCE = "qcChannelsTolerance";
+
 Settings* Settings::instance;
 
 Settings::Settings() :
@@ -45,6 +50,12 @@ Settings* Settings::getInstance(){
         mutex.unlock();
     }
     return Settings::instance;
+}
+
+void Settings::updateValue(const QString & key, const QVariant & value){
+    this->setValue(key, value);
+    qDebug()<<"Updating config value";
+    emit configurationChanged();
 }
 
 bool Settings::isDummyModeEnabled(){
@@ -153,8 +164,12 @@ QString Settings::getSpellerPhrase(){
     return getInstance()->value(Settings::OPT_SPELLER_PHRASE, "PAINT").toString().toUpper();
 }
 
-QString Settings::getOctaveScriptsRoot(){
+QString Settings::octaveScriptsRoot(){
     return getInstance()->value(Settings::OPT_OCTAVE_SCRIPTS_ROOT, "./scripts").toString();
+}
+
+void Settings::setOctaveScriptsRoot(QString value){
+    getInstance()->setValue(Settings::OPT_OCTAVE_SCRIPTS_ROOT, value);
 }
 
 void Settings::setSpellerPhrase(QString phrase){
@@ -191,4 +206,36 @@ int Settings::getOnlineMinEpochs(){
 
 void Settings::setOnlineMinEpochs(int value){
     getInstance()->setValue(Settings::OPT_ONLINE_MIN_EPOCHS, value);
+}
+
+bool Settings::qcInterrupt(){
+    return getInstance()->value(Settings::OPT_QC_INTERRUPT, "false").toBool();
+}
+
+void Settings::setQcInterrupt(bool value){
+    getInstance()->updateValue(Settings::OPT_QC_INTERRUPT, value);
+}
+
+double Settings::qcGoodnessLevel(){
+    return getInstance()->value(Settings::OPT_QC_GOODNESS, "0.8").toDouble();
+}
+
+void Settings::setQcGoodnessLevel(double value){
+    getInstance()->setValue(Settings::OPT_QC_GOODNESS, value);
+}
+
+int Settings::qcStrictness(){
+    return getInstance()->value(Settings::OPT_QC_STRICTNESS, "10").toInt();
+}
+
+void Settings::setQcStrictness(int value){
+    getInstance()->setValue(Settings::OPT_QC_STRICTNESS, value);
+}
+
+int Settings::qcChannelsTolerance(){
+    return getInstance()->value(Settings::OPT_QC_CHANNELS_TOLERANCE, "4").toInt();
+}
+
+void Settings::setQcChannelsTolerance(int channels){
+    getInstance()->setValue(Settings::OPT_QC_CHANNELS_TOLERANCE, channels);
 }

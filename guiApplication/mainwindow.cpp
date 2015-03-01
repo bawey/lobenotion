@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sessionsWidget = new SessionsManagerWidget(master->getSessionsModel());
     octaveWidget = new OctaveOutputWidget();
     classifiersWidget = new ClassifiersManagerWidget();
+    settingsWidget = new SettingsWidget();
 
     // Menus: File
     fileMenu=new QMenu();
@@ -108,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
     analysisLayout->addWidget(octaveWidget);
     stackLayout->addWidget(analysisWidget);
 
-    stackLayout->addWidget(new QLabel("4: Preferences?"));
+    stackLayout->addWidget(settingsWidget);
     stackLayout->addWidget(new QLabel("5: This program is..."));
 
     connectSignalsToSlots();
@@ -128,6 +129,8 @@ void MainWindow::connectSignalsToSlots(){
     connect(spellerCtlWidget, SIGNAL(signalOnlineModeEnd()), spellerCtl, SLOT(endOnline()));
     connect(spellerCtl, SIGNAL(dataTakingStarted(dataTakingParams*)), spellerCtlWidget, SLOT(slotDataTakingStarted()));
     connect(spellerCtl, SIGNAL(dataTakingEnded()), spellerCtlWidget, SLOT(slotDataTakingFinished()));
+    connect(spellerCtl, SIGNAL(onlineModeStarted(const dataTakingParams*)), spellerCtlWidget, SLOT(slotOnlineModeStart()));
+    connect(spellerCtl, SIGNAL(onlineModeEnded()), spellerCtlWidget, SLOT(slotOnlineModeEnd()));
     connect(spellerCtl, SIGNAL(signalSymbolRecognized(QChar)), spellerCtlWidget, SLOT(slotRecognizedCharacter(QChar)));
     connect(spellerCtl, SIGNAL(signalSymbolRecognized(QString)), spellerCtlWidget, SLOT(slotRecognizedCharacter(QString)));
 
@@ -153,6 +156,11 @@ void MainWindow::connectSignalsToSlots(){
     //Launching online mode from classifiers management panel
     connect(classifiersWidget, SIGNAL(signalGoOnline()), this, SLOT(slotOnlineUse()));
     connect(master, SIGNAL(signalErrorRelay(QString)), this, SLOT(slotDisplayError(QString)));
+
+    // Classes reacting to configuration changes
+    connect(Settings::getInstance(), SIGNAL(configurationChanged()), spellerCtlWidget, SLOT(configurationChanged()));
+    connect(Settings::getInstance(), SIGNAL(configurationChanged()), metaProcessor, SLOT(configurationChanged()),
+            Qt::DirectConnection);
 }
 
 void MainWindow::slotDashboard(){
@@ -174,11 +182,13 @@ void MainWindow::prologDataTakingOrOnline(){
 void MainWindow::slotDataTaking(){
     prologDataTakingOrOnline();
     spellerCtlWidget->switchOffline();
+    spellerCtlWidget->revalidate();
 }
 
 void MainWindow::slotOnlineUse(){
     prologDataTakingOrOnline();
     spellerCtlWidget->switchOnline();
+    spellerCtlWidget->revalidate();
 }
 
 void MainWindow::slotAnalyze(){
@@ -188,6 +198,7 @@ void MainWindow::slotAnalyze(){
 }
 
 void MainWindow::slotPreferences(){
+    settingsWidget->revalidate();
     stackLayout->setCurrentIndex(3);
 }
 

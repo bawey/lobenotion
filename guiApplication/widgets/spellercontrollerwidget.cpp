@@ -57,9 +57,7 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     onlineForm->addRow("Classifier", classifierCombo);
 
     confidenceSetoffPeriod=new QSpinBox();
-    confidenceSetoffPeriod->setValue(Settings::getOnlineMinEpochs());
     confidenceThreshold=new QDoubleSpinBox();
-    confidenceThreshold->setValue(Settings::getConfidenceThreshold());
     confidenceThreshold->setMinimum(0.0);
     confidenceThreshold->setMaximum(1.0);
     confidenceThreshold->setSingleStep(0.01);
@@ -85,28 +83,22 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
     modeStack->addWidget(onlineContainer);
     modeStack->setSizeConstraint(QLayout::SetMinimumSize);
 
-
     formLayout=new QFormLayout();
     form=new QWidget();
     form->setLayout(formLayout);
     epochsPerStimulus = new QSpinBox();
-    epochsPerStimulus->setValue(Settings::getSpellerEpochsPerStimulus());
     formLayout->addRow("Repetitions", epochsPerStimulus);
     highlightDuration = new QSpinBox();
     highlightDuration->setMaximum(1000);
-    highlightDuration->setValue(Settings::getSpellerHighlightStint());
     formLayout->addRow("Highlight stint", highlightDuration);
     dimDuration = new QSpinBox();
     dimDuration->setMaximum(1000);
-    dimDuration->setValue(Settings::getSpellerDimStint());
     formLayout->addRow("Dim stint", dimDuration);
     infoDuration = new QSpinBox();
     infoDuration->setMaximum(10000);
-    infoDuration->setValue(Settings::getSpellerInfoStint());
     formLayout->addRow("Info stint", infoDuration);
     interPeriodGap = new QSpinBox();
     interPeriodGap->setMaximum(10000);
-    interPeriodGap->setValue(Settings::getSpellerInterPeriodStint());
     formLayout->addRow("Inter-period gap", interPeriodGap);
     //void startDataTaking(int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,
 
@@ -134,6 +126,10 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
 
 }
 
+void SpellerControllerWidget::configurationChanged(){
+    qDebug()<<"Got the config-update signal";
+}
+
 void SpellerControllerWidget::connectSignalsToSlots(){
 //    QObject::connect(daqStart, SIGNAL(clicked()), this, SLOT(slotDaqStart()));
 //    QObject::connect(daqStop, SIGNAL(clicked()), this, SLOT(slotDaqStop()));
@@ -142,18 +138,99 @@ void SpellerControllerWidget::connectSignalsToSlots(){
 
 }
 
+void SpellerControllerWidget::slotSignalFine(bool isFine){
+    QPalette palette = daqSignalProblem->palette();
+    if(Settings::qcInterrupt() && buttonStartDaq->isEnabled() && !isFine && Settings::qcInterrupt()){
+        QColor color(255,0,0,255);
+        palette.setColor(daqSignalProblem->foregroundRole(), color);
+        buttonStartDaq->setEnabled(false);
+    }else if(!Settings::qcInterrupt() ||
+             (!buttonStopDaq->isEnabled() && !buttonStartDaq->isEnabled() && isFine)){
+        //if data taking not in progress and START button disabled due to bad signal
+        QColor color(0,0,0,0);
+        palette.setColor(daqSignalProblem->foregroundRole(), color);
+        buttonStartDaq->setEnabled(true);
+    }
+    daqSignalProblem->setPalette(palette);
+}
+
+void SpellerControllerWidget::slotSpellerError(unsigned char code){
+    this->labelError->show();
+    switch(code){
+    case SpellerController::ERRCODE_SIGNAL:
+        labelError->setText("Speller Ctl error: noisy signal!");
+        break;
+    case SpellerController::ERRCODE_PARAMETERS:
+        labelError->setText("Speller Ctl error: parameters validation!");
+        break;
+    case SpellerController::ERRCODE_ABORTED:
+        labelError->setText("Data taking aborted by the user.");
+        break;
+    default:
+        labelError->setText(QString("Speller Ctl error code: %1!").arg(QString::number(code)));
+        break;
+    }
+    qDebug()<<"Speller ERROR number "<<code;
+}
+
+void SpellerControllerWidget::switchOnline(){
+    modeStack->setCurrentIndex(1);
+}
+
+void SpellerControllerWidget::switchOffline(){
+    modeStack->setCurrentIndex(0);
+}
+
+void SpellerControllerWidget::slotRecognizedCharacter(QChar character){
+    recognizedCharacters->setText(recognizedCharacters->text().append(character).append(" "));
+}
+
+void SpellerControllerWidget::slotRecognizedCharacter(QString charStr){
+    recognizedCharacters->setText(recognizedCharacters->text().append(charStr).append(" "));
+}
+
+void SpellerControllerWidget::revalidate(){
+    highlightDuration->setValue(Settings::getSpellerHighlightStint());
+    epochsPerStimulus->setValue(Settings::getSpellerEpochsPerStimulus());
+    dimDuration->setValue(Settings::getSpellerDimStint());
+    infoDuration->setValue(Settings::getSpellerInfoStint());
+    interPeriodGap->setValue(Settings::getSpellerInterPeriodStint());
+    confidenceSetoffPeriod->setValue(Settings::getOnlineMinEpochs());
+    confidenceThreshold->setValue(Settings::getConfidenceThreshold());
+}
+
+void SpellerControllerWidget::slotOnlineModeStart(){
+    adaptButtonsState(true);
+}
+void SpellerControllerWidget::slotOnlineModeEnd(){
+    adaptButtonsState(false);
+}
 
 void SpellerControllerWidget::slotDataTakingStarted(){
-    buttonStartDaq->setEnabled(false);
-    buttonStopDaq->setEnabled(true);
+    adaptButtonsState(true);
     if(labelError->isVisible()){
         labelError->hide();
     }
 }
 
 void SpellerControllerWidget::slotDataTakingFinished(){
-    buttonStartDaq->setEnabled(true);
-    buttonStopDaq->setEnabled(false);
+    adaptButtonsState(false);
+}
+
+void SpellerControllerWidget::slotButtonPressedFinish(){
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Test", "This will terminate currrent session. Continue?", QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        if( modeStack->currentIndex()==0 ){
+            emit signalDataTakingEnd();
+            qDebug() << "Offline session termination confirmed";
+        } else{
+            emit signalOnlineModeEnd();
+            qDebug() << "Online session termination confirmed";
+        }
+    } else {
+        qDebug() << "Session termination abandoned";
+    }
 }
 
 void SpellerControllerWidget::slotButtonPressedStart(){
@@ -183,69 +260,27 @@ void SpellerControllerWidget::slotButtonPressedStart(){
 
         emit signalDataTakingStart(phraseValue, flashesPerStimulus, interStimulusInterval, interPeriodGapValue, highlightDurationValue, infoDurationValue, subjectNameValue, pathValue);
     } else if(modeStack->currentIndex()==1){
-        qDebug()<<"We don't yet know how to start online data taking, but working on it :)";
+       // modeStack on index 1 signifies SpellerControllerWidget being in Online mode
         int charactersLimit = phraseLength->text().toInt();
         emit signalOnlineModeStart(charactersLimit ,flashesPerStimulus, interStimulusInterval, interPeriodGapValue,
                                    highlightDurationValue, infoDurationValue);
     }
 }
 
-void SpellerControllerWidget::slotSignalFine(bool isFine){
-    QPalette palette = daqSignalProblem->palette();
-    if(buttonStartDaq->isEnabled() && !isFine){
-        QColor color(255,0,0,255);
-        palette.setColor(daqSignalProblem->foregroundRole(), color);
-        buttonStartDaq->setEnabled(false);
-    }else if(!buttonStopDaq->isEnabled() && !buttonStartDaq->isEnabled() && isFine){ //if data taking not in progress and START button disabled due to bad signal
-        QColor color(0,0,0,0);
-        palette.setColor(daqSignalProblem->foregroundRole(), color);
-        buttonStartDaq->setEnabled(true);
-    }
-    daqSignalProblem->setPalette(palette);
-}
+void SpellerControllerWidget::adaptButtonsState(bool inrun){
+    buttonStopDaq->setEnabled(inrun);
 
-void SpellerControllerWidget::slotSpellerError(unsigned char code){
-    this->labelError->show();
-    switch(code){
-    case SpellerController::ERRCODE_SIGNAL:
-        labelError->setText("Speller Ctl error: noisy signal!");
-        break;
-    case SpellerController::ERRCODE_PARAMETERS:
-        labelError->setText("Speller Ctl error: parameters validation!");
-        break;
-    case SpellerController::ERRCODE_ABORTED:
-        labelError->setText("Data taking aborted by the user.");
-        break;
-    default:
-        labelError->setText(QString("Speller Ctl error code: %1!").arg(QString::number(code)));
-        break;
-    }
-    qDebug()<<"Speller ERROR number "<<code;
-}
-
-void SpellerControllerWidget::slotButtonPressedFinish(){
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Test", "This will terminate the data taking session. Continue?", QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-        emit signalDataTakingEnd();
-        qDebug() << "Yes was clicked";
-    } else {
-        qDebug() << "Yes was *not* clicked";
-    }
-}
-
-void SpellerControllerWidget::switchOnline(){
-    modeStack->setCurrentIndex(1);
-}
-
-void SpellerControllerWidget::switchOffline(){
-    modeStack->setCurrentIndex(0);
-}
-
-void SpellerControllerWidget::slotRecognizedCharacter(QChar character){
-    recognizedCharacters->setText(recognizedCharacters->text().append(character).append(" "));
-}
-
-void SpellerControllerWidget::slotRecognizedCharacter(QString charStr){
-    recognizedCharacters->setText(recognizedCharacters->text().append(charStr).append(" "));
+    buttonStartDaq->setEnabled(!inrun);
+    subjectName->setEnabled(!inrun);
+    parentDir->setEnabled(!inrun);
+    spellPhrase->setEnabled(!inrun);
+    highlightDuration->setEnabled(!inrun);
+    dimDuration->setEnabled(!inrun);
+    epochsPerStimulus->setEnabled(!inrun);
+    interPeriodGap->setEnabled(!inrun);
+    infoDuration->setEnabled(!inrun);
+    phraseLength->setEnabled(!inrun);
+    classifierCombo->setEnabled(!inrun);
+    confidenceThreshold->setEnabled(!inrun);
+    confidenceSetoffPeriod->setEnabled(!inrun);
 }

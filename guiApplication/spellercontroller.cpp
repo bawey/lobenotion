@@ -274,10 +274,12 @@ void SpellerController::startOnline(int charactersLimit, int epochsPerStimulus, 
     QtConcurrent::run(this, &SpellerController::dataTakingJob, params);
 }
 
-void SpellerController::endOnline(){}
+void SpellerController::endOnline(){
+    flagAbort = true;
+}
 
 void SpellerController::slotSignalFine(bool isIt){
-    this->flagSignalFine=isIt;
+    this->flagSignalFine = isIt || !Settings::qcInterrupt();
 }
 
 void SpellerController::slotCapturedOnlinePeriod(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
