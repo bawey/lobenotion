@@ -4,34 +4,38 @@
 #include <QDir>
 #include <QDebug>
 
-QString Settings::DEF_SPELLER_CHARSET="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0";
+const QString Settings::DEF_SPELLER_CHARSET="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0";
 
-QString Settings::OPT_DUMMY_DAQ="dummyDaq";
-QString Settings::OPT_DUMMY_DAQ_NOISY="dummyDaqNoisy";
-QString Settings::OPT_EEG_VISUALIZER="eegVisualizer";
-QString Settings::OPT_EEG_DUMP_PATH="eegDumpPath";
-QString Settings::OPT_META_DUMP_PATH="metaDumpPath";
-QString Settings::OPT_SPELLER_MATRIX_SIZE="spellerMatrixSize";
-QString Settings::OPT_SPELLER_CHARSET="spellerCharset";
-QString Settings::OPT_SPELLER_HIGHLIGHT_STINT="spellerHighlightStint";
-QString Settings::OPT_SPELLER_DIM_STINT="spellerDimStint";
-QString Settings::OPT_SPELLER_INTER_PERIOD_STINT="spellerInterPeriodStint";
-QString Settings::OPT_SPELLER_INFO_STINT="spellerInfoStint";
-QString Settings::OPT_SPELLER_EPOCHS_PER_STIMULUS="spellerEpochsPerStimulus";
-QString Settings::OPT_SPELLER_PHRASE="spellerPhrase";
-QString Settings::OPT_SUBJECT_NAME="subjectName";
-QString Settings::OPT_OCTAVE_SCRIPTS_ROOT="octaveScriptsRoot";
-QString Settings::OPT_TRAIN_DECIMATION_FACTOR="trainDecimationFactor";
-QString Settings::OPT_TRAIN_XV_RATE="trainXvRate";
-QString Settings::OPT_TRAIN_PERIOD_SPLIT_RATE="trainPeriodSplitRate";
-QString Settings::OPT_TRAIN_BALANCING="trainBalancing";
-QString Settings::OPT_ONLINE_CONFIDENCE="onlineConfidenceThreshold";
-QString Settings::OPT_ONLINE_MIN_EPOCHS="onlineMinEpochs";
+const QString Settings::OPT_DUMMY_DAQ="dummyDaq";
+const QString Settings::OPT_DUMMY_DAQ_NOISY="dummyDaqNoisy";
+const QString Settings::OPT_EEG_VISUALIZER="eegVisualizer";
+const QString Settings::OPT_EEG_DUMP_PATH="eegDumpPath";
+const QString Settings::OPT_META_DUMP_PATH="metaDumpPath";
+const QString Settings::OPT_SPELLER_MATRIX_SIZE="spellerMatrixSize";
+const QString Settings::OPT_SPELLER_CHARSET="spellerCharset";
+const QString Settings::OPT_SPELLER_HIGHLIGHT_STINT="spellerHighlightStint";
+const QString Settings::OPT_SPELLER_DIM_STINT="spellerDimStint";
+const QString Settings::OPT_SPELLER_INTER_PERIOD_STINT="spellerInterPeriodStint";
+const QString Settings::OPT_SPELLER_INFO_STINT="spellerInfoStint";
+const QString Settings::OPT_SPELLER_EPOCHS_PER_STIMULUS="spellerEpochsPerStimulus";
+const QString Settings::OPT_SPELLER_PHRASE="spellerPhrase";
+const QString Settings::OPT_SUBJECT_NAME="subjectName";
+const QString Settings::OPT_OCTAVE_SCRIPTS_ROOT="octaveScriptsRoot";
+const QString Settings::OPT_TRAIN_DECIMATION_FACTOR="trainDecimationFactor";
+const QString Settings::OPT_TRAIN_XV_RATE="trainXvRate";
+const QString Settings::OPT_TRAIN_PERIOD_OVERSAMPLING="trainPeriodOversampling";
+const QString Settings::OPT_TRAIN_BALANCING="trainBalancing";
+const QString Settings::OPT_ONLINE_CONFIDENCE="onlineConfidenceThreshold";
+const QString Settings::OPT_ONLINE_MIN_EPOCHS="onlineMinEpochs";
 
-QString Settings::OPT_QC_INTERRUPT = "qcInterrupt";
-QString Settings::OPT_QC_GOODNESS = "qcGoodness";
-QString Settings::OPT_QC_STRICTNESS = "qcStrictness";
-QString Settings::OPT_QC_CHANNELS_TOLERANCE = "qcChannelsTolerance";
+const QString Settings::OPT_QC_INTERRUPT = "qcInterrupt";
+const QString Settings::OPT_QC_GOODNESS = "qcGoodness";
+const QString Settings::OPT_QC_STRICTNESS = "qcStrictness";
+const QString Settings::OPT_QC_CHANNELS_TOLERANCE = "qcChannelsTolerance";
+
+const QString Settings::OPT_CLASSIFIER_ENABLED = "classifier%1Enabled";
+
+const QString Settings::OPT_CLASSIFIERS_CONFIG = "classifiersConfig";
 
 Settings* Settings::instance;
 
@@ -56,6 +60,7 @@ void Settings::updateValue(const QString & key, const QVariant & value){
     this->setValue(key, value);
     qDebug()<<"Updating config value";
     emit configurationChanged();
+    emit configurationChanged(key);
 }
 
 bool Settings::isDummyModeEnabled(){
@@ -169,7 +174,7 @@ QString Settings::octaveScriptsRoot(){
 }
 
 void Settings::setOctaveScriptsRoot(QString value){
-    getInstance()->setValue(Settings::OPT_OCTAVE_SCRIPTS_ROOT, value);
+    getInstance()->updateValue(Settings::OPT_OCTAVE_SCRIPTS_ROOT, value);
 }
 
 void Settings::setSpellerPhrase(QString phrase){
@@ -180,15 +185,23 @@ int Settings::getDecimationFactcor(){
     return getInstance()->value(Settings::OPT_TRAIN_DECIMATION_FACTOR, "8").toInt();
 }
 
-int Settings::getTrainCvRate(){
+int Settings::crossValidationRounds(){
     return getInstance()->value(Settings::OPT_TRAIN_XV_RATE, "5").toInt();
 }
 
-int Settings::getTrainPeriodSplitRate(){
-    return getInstance()->value(Settings::OPT_TRAIN_PERIOD_SPLIT_RATE, "3").toInt();
+void Settings::setCrossvalidationRounds(int count){
+    getInstance()->setValue(Settings::OPT_TRAIN_XV_RATE, count);
 }
 
-QString Settings::getTrainBalancing(){
+int Settings::periodOversampling(){
+    return getInstance()->value(Settings::OPT_TRAIN_PERIOD_OVERSAMPLING, "3").toInt();
+}
+
+void Settings::setPeriodOversampling(int factor){
+    getInstance()->setValue(Settings::OPT_TRAIN_PERIOD_OVERSAMPLING, factor);
+}
+
+QString Settings::useBalancing(){
     return getInstance()->value(Settings::OPT_TRAIN_BALANCING, "no").toString();
 }
 
@@ -238,4 +251,22 @@ int Settings::qcChannelsTolerance(){
 
 void Settings::setQcChannelsTolerance(int channels){
     getInstance()->setValue(Settings::OPT_QC_CHANNELS_TOLERANCE, channels);
+}
+
+void Settings::enableClassifier(QString name, bool enable){
+    QString option = QString(OPT_CLASSIFIER_ENABLED).arg(name);
+    getInstance()->setValue(option, enable);
+}
+
+bool Settings::classifierEnabled(QString name){
+    QString option = QString(OPT_CLASSIFIER_ENABLED).arg(name);
+    return getInstance()->value(option, "false").toBool();
+}
+
+QString Settings::classifiersConfig(){
+    return getInstance()->value(Settings::OPT_CLASSIFIERS_CONFIG, "fastest").toString();
+}
+
+void Settings::setClassifiersConfig(QString path){
+    getInstance()->setValue(Settings::OPT_CLASSIFIERS_CONFIG, path);
 }

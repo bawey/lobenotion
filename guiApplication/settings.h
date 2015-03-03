@@ -3,6 +3,8 @@
 
 #include <QSettings>
 #include <QString>
+#include <QList>
+#include <QSet>
 
 class Settings : public QSettings
 {
@@ -40,12 +42,7 @@ public:
 
 
     static int getDecimationFactcor();
-
-    static int getTrainCvRate();
-
-    static int getTrainPeriodSplitRate();
-
-    static QString getTrainBalancing();
+    static QString useBalancing();
 
     static float getConfidenceThreshold();
 
@@ -56,47 +53,62 @@ public:
     static int qcStrictness();
     static int qcChannelsTolerance();
 
+    static bool classifierEnabled(QString name);
+    static const QSet<QString>* const runtimeClassifiers(){ return getInstance()->runtimeClassifiersSet; }
+
+    static int periodOversampling();
+    static int crossValidationRounds();
+
+    static QString classifiersConfig();
+
+public:
+    static const QString DEF_SPELLER_CHARSET;
+
+    static const QString OPT_DUMMY_DAQ;
+    static const QString OPT_DUMMY_DAQ_NOISY;
+    static const QString OPT_EEG_VISUALIZER;
+    static const QString OPT_EEG_DUMP_PATH;
+    static const QString OPT_META_DUMP_PATH;
+    static const QString OPT_SPELLER_CHARSET;
+    static const QString OPT_SPELLER_MATRIX_SIZE;
+    static const QString OPT_SPELLER_HIGHLIGHT_STINT;
+    static const QString OPT_SPELLER_DIM_STINT;
+    static const QString OPT_SPELLER_INTER_PERIOD_STINT;
+    static const QString OPT_SPELLER_INFO_STINT;
+    static const QString OPT_SPELLER_EPOCHS_PER_STIMULUS;
+
+    static const QString OPT_SUBJECT_NAME;
+    static const QString OPT_SPELLER_PHRASE;
+    static const QString OPT_OCTAVE_SCRIPTS_ROOT;
+
+    static const QString OPT_TRAIN_DECIMATION_FACTOR;
+    static const QString OPT_TRAIN_XV_RATE;
+    static const QString OPT_TRAIN_PERIOD_OVERSAMPLING;
+    static const QString OPT_TRAIN_BALANCING;
+    static const QString OPT_CLASSIFIERS_CONFIG;
+
+    static const QString OPT_ONLINE_CONFIDENCE;
+    static const QString OPT_ONLINE_MIN_EPOCHS;
+
+    static const QString OPT_QC_INTERRUPT;
+    static const QString OPT_QC_GOODNESS;
+    static const QString OPT_QC_STRICTNESS;
+    static const QString OPT_QC_CHANNELS_TOLERANCE;
+
+    static const QString OPT_CLASSIFIER_ENABLED;
+
+
 private:
-    static QString DEF_SPELLER_CHARSET;
-
-    static QString OPT_DUMMY_DAQ;
-    static QString OPT_DUMMY_DAQ_NOISY;
-    static QString OPT_EEG_VISUALIZER;
-    static QString OPT_EEG_DUMP_PATH;
-    static QString OPT_META_DUMP_PATH;
-    static QString OPT_SPELLER_CHARSET;
-    static QString OPT_SPELLER_MATRIX_SIZE;
-    static QString OPT_SPELLER_HIGHLIGHT_STINT;
-    static QString OPT_SPELLER_DIM_STINT;
-    static QString OPT_SPELLER_INTER_PERIOD_STINT;
-    static QString OPT_SPELLER_INFO_STINT;
-    static QString OPT_SPELLER_EPOCHS_PER_STIMULUS;
-
-    static QString OPT_SUBJECT_NAME;
-    static QString OPT_SPELLER_PHRASE;
-    static QString OPT_OCTAVE_SCRIPTS_ROOT;
-
-    static QString OPT_TRAIN_DECIMATION_FACTOR;
-    static QString OPT_TRAIN_XV_RATE;
-    static QString OPT_TRAIN_PERIOD_SPLIT_RATE;
-    static QString OPT_TRAIN_BALANCING;
-
-    static QString OPT_ONLINE_CONFIDENCE;
-    static QString OPT_ONLINE_MIN_EPOCHS;
-
-    static QString OPT_QC_INTERRUPT;
-    static QString OPT_QC_GOODNESS;
-    static QString OPT_QC_STRICTNESS;
-    static QString OPT_QC_CHANNELS_TOLERANCE;
-
     static Settings* instance;
     explicit Settings();
     Settings(Settings &);
 
     void updateValue(const QString & key, const QVariant & value);
+    QSet<QString>* runtimeClassifiersSet = new QSet<QString>();
     
 signals:
     void configurationChanged();
+    void configurationChanged(QString paraname);
     
 public slots:
     static void setDummyModeEnabled(bool isIt);
@@ -116,6 +128,11 @@ public slots:
     static void setQcStrictness(int);
     static void setQcChannelsTolerance(int);
     static void setOctaveScriptsRoot(QString value);
+    static void enableClassifier(QString name, bool enable);
+    static void addRuntimeClassifier(QString name){ getInstance()->runtimeClassifiersSet->insert(name); }
+    static void setClassifiersConfig(QString path);
+    static void setPeriodOversampling(int factor);
+    static void setCrossvalidationRounds(int count);
 };
 
 #endif // SETTINGS_H

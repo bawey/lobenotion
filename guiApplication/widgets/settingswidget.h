@@ -12,8 +12,10 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QSignalMapper>
+#include <QScrollArea>
+#include "classifierswidget.h"
 
-class SettingsWidget : public QWidget
+class SettingsWidget : public QScrollArea
 {
     Q_OBJECT
 public:
@@ -26,6 +28,7 @@ public slots:
 
 private slots:
     void pickDir(QWidget*);
+    void pickClassifiersConfig();
 
 private:
     QSignalMapper *dirMapper = new QSignalMapper();
@@ -36,11 +39,17 @@ private:
 //    QLabel *labelStrictness = new QLabel("Quality control strictness");
     QLabel *labelOctaveRoot = new QLabel("Octave scripts directory");
     QLabel *labelDataDir = new QLabel("Data directory");
+    QLabel *labelClassifiers = new QLabel("Classifiers for training");
+    QLabel *labelClassifierCnf = new QLabel("Classifiers config");
+    QLabel *labelPeriodOversampling = new QLabel("Period oversampling");
+    QLabel *labelXvFold = new QLabel("Cross-validation rounds");
 
 
     QCheckBox *valueInterrupt = new QCheckBox(this);
     QSpinBox *valueChannelsTolerance = new QSpinBox(this);
     QDoubleSpinBox *valueGoodness = new QDoubleSpinBox(this);
+    QSpinBox *valueOversampling = new QSpinBox(this);
+    QSpinBox *valueXvFold = new QSpinBox(this);
 //    QSpinBox *valueStrictness = new QSpinBox(this);
 
     QLineEdit *valueOctaveDir = new QLineEdit(this);
@@ -50,6 +59,10 @@ private:
     QLineEdit *valueDataDir = new QLineEdit(this);
     QHBoxLayout *rowDataDir = new QHBoxLayout();
     QPushButton *buttonDataDir = new QPushButton(this);
+
+    QLineEdit *valueClassCnf = new QLineEdit(this);
+    QHBoxLayout *rowClassCnf = new QHBoxLayout();
+    QPushButton *buttonClassCnf = new QPushButton(this);
 
     void connectSignalsSlots();
 };

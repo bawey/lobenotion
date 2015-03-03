@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QProcess>
 #include <master.h>
+#include <Cell.h>
 
 
 OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
@@ -130,12 +131,11 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
         }
     }
     qDebug()<<"embarking on classifier training";
-    //[model modelCell featsSelectCell summary]
-    //= pickClassifier(session, classification_methods='all', repeats_split='no', balancing='no', xsplit='min')
-    merged(1)=octave_value("fastest");
-    merged(2)=octave_value(3);
+
+    merged(1)=octave_value(Settings::classifiersConfig().toStdString());
+    merged(2)=octave_value(Settings::periodOversampling());
     merged(3)=octave_value("no");
-    merged(4)=octave_value(5);
+    merged(4)=octave_value(Settings::crossValidationRounds());
     octave_value_list results = feval("pickClassifier", merged);
 
     std::string classifierString = feval("stringify", octave_value_list(results(1)))(0).string_value();

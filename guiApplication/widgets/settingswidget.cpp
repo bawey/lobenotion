@@ -1,11 +1,15 @@
 #include "settingswidget.h"
 #include "settings.h"
+#include <QFileInfo>
+#include <QDebug>
+#include <QUrl>
 
 SettingsWidget::SettingsWidget(QWidget *parent) :
-    QWidget(parent)
+    QScrollArea(parent)
 {
     this->valueChannelsTolerance->setRange(0, 12);
     this->valueGoodness->setRange(0, 1);
+    valueGoodness->setSingleStep(0.01);
 //    this->valueStrictness->setRange(0, 100);
 
     layout->addRow(labelInterrupt, valueInterrupt);
@@ -27,6 +31,17 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     layout->addRow(labelDataDir, rowDataDir);
     dirMapper->setMapping(buttonDataDir, valueDataDir);
 
+    buttonClassCnf->setText("Browse");
+    rowClassCnf->addWidget(valueClassCnf);
+    rowClassCnf->addWidget(buttonClassCnf);
+    layout->addRow(labelClassifierCnf, rowClassCnf);
+
+    valueOversampling->setRange(1,12);
+    layout->addRow(labelPeriodOversampling, valueOversampling);
+
+    valueXvFold->setRange(1,100);
+    layout->addRow(labelXvFold, valueXvFold);
+
     this->setLayout(this->layout);
     this->connectSignalsSlots();
 }
@@ -42,6 +57,11 @@ void SettingsWidget::connectSignalsSlots(){
     connect(buttonDataDir, SIGNAL(clicked()), dirMapper, SLOT(map()));
     connect(buttonOctave, SIGNAL(clicked()), dirMapper, SLOT(map()));
     connect(dirMapper, SIGNAL(mapped(QWidget*)), this, SLOT(pickDir(QWidget*)));
+    connect(valueClassCnf, SIGNAL(textChanged(QString)), Settings::getInstance(), SLOT(setClassifiersConfig(QString)));
+    connect(buttonClassCnf, SIGNAL(clicked()), this, SLOT(pickClassifiersConfig()));
+
+    connect(valueXvFold, SIGNAL(valueChanged(int)), Settings::getInstance(), SLOT(setCrossvalidationRounds(int)));
+    connect(valueOversampling, SIGNAL(valueChanged(int)), Settings::getInstance(), SLOT(setPeriodOversampling(int)));
 }
 
 /**
@@ -56,8 +76,33 @@ void SettingsWidget::revalidate(){
 //    valueStrictness->setValue(s->qcStrictness());
     valueOctaveDir->setText(s->octaveScriptsRoot());
     valueDataDir->setText(s->getEegDumpPath());
+    valueClassCnf->setText(s->classifiersConfig());
+    valueOversampling->setValue(s->periodOversampling());
+    valueXvFold->setValue(s->crossValidationRounds());
+
 }
 
 void SettingsWidget::pickDir(QWidget* field){
-    ((QLineEdit*)field)->setText(QFileDialog::getExistingDirectory());
+    QString txt = QFileDialog::getExistingDirectory();
+    if(QFileInfo(txt).exists()){
+        ((QLineEdit*)field)->setText(txt);
+    }
 }
+
+void SettingsWidget::pickClassifiersConfig(){
+    QFileInfo currentFileInfo = QFileInfo(Settings::classifiersConfig());
+    QString url;
+    if(currentFileInfo.exists()){
+        url = currentFileInfo.dir().absolutePath();
+    }else if(QFileInfo(Settings::octaveScriptsRoot()).exists()){
+        url = Settings::octaveScriptsRoot();
+    }else{
+        url="~";
+    }
+    QString chosen = QFileDialog::getOpenFileName(this, "caption", url, "*.cnf");
+    qDebug()<<"cnf path: "<<chosen;
+    if(QFileInfo(chosen).exists()){
+        valueClassCnf->setText(chosen);
+    }
+}
+

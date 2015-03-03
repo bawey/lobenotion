@@ -160,7 +160,8 @@ void MainWindow::connectSignalsToSlots(){
     // Classes reacting to configuration changes
     connect(Settings::getInstance(), SIGNAL(configurationChanged()), spellerCtlWidget, SLOT(configurationChanged()));
     connect(Settings::getInstance(), SIGNAL(configurationChanged()), metaProcessor, SLOT(configurationChanged()),
-            Qt::DirectConnection);
+             Qt::DirectConnection);
+
 }
 
 void MainWindow::slotDashboard(){

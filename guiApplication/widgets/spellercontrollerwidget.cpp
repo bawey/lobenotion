@@ -127,7 +127,7 @@ SpellerControllerWidget::SpellerControllerWidget(QWidget *parent) :
 }
 
 void SpellerControllerWidget::configurationChanged(){
-    qDebug()<<"Got the config-update signal";
+//    qDebug()<<"Got the config-update signal";
 }
 
 void SpellerControllerWidget::connectSignalsToSlots(){

@@ -36,6 +36,6 @@ void MetaProcessor::processMetaFrame(QSharedPointer<MetaFrame> framePtr){
 }
 
 void MetaProcessor::configurationChanged(){
-    qDebug()<<"broadcastong settings-update forced signal quality";
+//    qDebug()<<"broadcastong settings-update forced signal quality";
     emit signalFine(signalsFineSoFar);
 }

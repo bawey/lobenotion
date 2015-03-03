@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     widgets/sessionsmanagerwidget.cpp \
     widgets/octaveoutputwidget.cpp \
     widgets/classifiersmanagerwidget.cpp \
-    widgets/settingswidget.cpp
+    widgets/settingswidget.cpp \
+    widgets/classifierswidget.cpp
 
 HEADERS += \
     widgets/eegmetadatawidget.h \
@@ -28,7 +29,8 @@ HEADERS += \
     widgets/sessionsmanagerwidget.h \
     widgets/octaveoutputwidget.h \
     widgets/classifiersmanagerwidget.h \
-    widgets/settingswidget.h
+    widgets/settingswidget.h \
+    widgets/classifierswidget.h
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
