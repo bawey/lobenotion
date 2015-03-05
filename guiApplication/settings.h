@@ -123,7 +123,7 @@ public slots:
     static void setEegDumpPath(QString newPath);
     static void setSubjectName(QString name);
     static void setSpellerPhrase(QString phrase);
-    static void setConfidenceThreshold(float value);
+    static void setConfidenceThreshold(double value);
     static void setOnlineMinEpochs(int value);
     static void setQcInterrupt(bool);
     static void setQcGoodnessLevel(double);

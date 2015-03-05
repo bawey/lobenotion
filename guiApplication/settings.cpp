@@ -210,7 +210,7 @@ float Settings::getConfidenceThreshold(){
     return getInstance()->value(Settings::OPT_ONLINE_CONFIDENCE, "0.5").toFloat();
 }
 
-void Settings::setConfidenceThreshold(float value){
+void Settings::setConfidenceThreshold(double value){
     getInstance()->setValue(Settings::OPT_ONLINE_CONFIDENCE, value);
 }
 
