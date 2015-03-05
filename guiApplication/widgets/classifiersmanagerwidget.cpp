@@ -102,3 +102,13 @@ void ClassifiersManagerWidget::slotAnalyzeConfidencePressed(){
 ClassifierInfo *ClassifiersManagerWidget::selectedClassifier() const {
     return model->chosenClassifier();
 }
+
+void ClassifiersManagerWidget::enableButtons(bool enable){
+    if(enable){
+        slotAdaptButtonsStateToSelection();
+    }else{
+        buttonConfidence->setEnabled(enable);
+        buttonDrop->setEnabled(enable);
+        buttonOnline->setEnabled(enable);
+    }
+}

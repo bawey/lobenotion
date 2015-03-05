@@ -7,6 +7,7 @@
 #include <master.h>
 #include <Cell.h>
 #include <QSharedPointer>
+#include <QThread>
 
 
 OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
@@ -35,7 +36,6 @@ OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
         outputReader = new OctaveOutputReader(namedPipe);
         connect(&outputThread, SIGNAL(started()), outputReader, SLOT(startReadingFifo()));
         outputReader->moveToThread(&outputThread);
-
         outputThread.start();
 
         feval("redirectOutput", redirectArgs);
@@ -63,12 +63,19 @@ void OctaveProxy::interpreter(){
 }
 
 QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc){
-    return this->askClassifier(&(modelDesc->classifier), sessionDesc->getSessionPtr());
+    mutex.lock();
+    QSharedPointer<QVector<ClassifierOutput*>> result =
+        this->askClassifier(&(modelDesc->classifier), sessionDesc->getSessionPtr());
+    mutex.unlock();
+    return result;
 }
 
 QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const ClassifierInfo *modelDesc, QList<const P3SessionInfo *>* infos){
+    mutex.lock();
     octave_value testSession = mergedSession(infos);
-    return this->askClassifier(&(modelDesc->classifier), &testSession);
+    QSharedPointer<QVector<ClassifierOutput*>> result = this->askClassifier(&(modelDesc->classifier), &testSession);
+    mutex.unlock();
+    return result;
 }
 
 QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const octave_value* classifier, const octave_value* session){
@@ -111,7 +118,8 @@ octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> *infos){
 }
 
 ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
-
+    mutex.lock();
+    emit signalOctaveBusy(true);
     foreach (const P3SessionInfo* info, infos) {
        if(info->getDimStint()!=infos.at(0)->getDimStint() ||
                info->getHighlightStint()!=infos.at(0)->getHighlightStint()||
@@ -141,7 +149,11 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
 
     std::string classifierString = feval("stringify", octave_value_list(results(1)))(0).string_value();
 
+    QThread::currentThread()->setObjectName("testthread");
+
+    mutex.unlock();
     if (errorCheckEpilogue()){
+        emit signalOctaveBusy(false);
         return NULL;
     } else {
         ClassifierInfo* desc = new ClassifierInfo();
@@ -150,12 +162,14 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
         desc->parameters = QString::fromStdString(classifierString);
         desc->classifier = results(0);
         desc->classifierCell = results(1);
+        emit signalOctaveBusy(false);
         return desc;
     }
 }
 
 P3SessionInfo* OctaveProxy::loadP3Session(QString absNameroot){
-
+    mutex.lock();
+    emit signalOctaveBusy(true);
     octave_value_list args(2);
     args(0)=octave_value("");
     args(1)=octave_value(absNameroot.toStdString());
@@ -164,15 +178,20 @@ P3SessionInfo* OctaveProxy::loadP3Session(QString absNameroot){
     loaded.append(octave_value(Settings::getDecimationFactcor()));
     octave_value_list returns = feval("downsample", loaded);
 
+    mutex.unlock();
     if(errorCheckEpilogue()){
+        emit signalOctaveBusy(false);
         return NULL;
     }else{
+        emit signalOctaveBusy(false);
         return new P3SessionInfo(returns(0));
     }
 }
 
 P3SessionInfo* OctaveProxy::toP3Session(QSharedPointer<QVector<int> > signal, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > targets, int channelsCount, int samplingRate, QString channelNames)
 {
+    mutex.lock();
+    emit signalOctaveBusy(true);
     int parseStatus;
     octave_value channelsCell = eval_string(channelNames.toStdString().c_str(), true, parseStatus);
 
@@ -207,9 +226,12 @@ P3SessionInfo* OctaveProxy::toP3Session(QSharedPointer<QVector<int> > signal, QS
     loaded.append(octave_value(Settings::getDecimationFactcor()));
     octave_value_list returns = feval("downsample", loaded);
 
+    mutex.unlock();
     if (errorCheckEpilogue()){
+        emit signalOctaveBusy(false);
         return NULL;
     }else{
+        emit signalOctaveBusy(false);
         return new P3SessionInfo(returns(0));
     }
 }
@@ -224,12 +246,18 @@ bool OctaveProxy::errorCheckEpilogue(){
 }
 
 void OctaveProxy::slotReloadScripts(){
+    mutex.lock();
+    emit signalOctaveBusy(true);
     feval("cd", octave_value_list(Settings::octaveScriptsRoot().toStdString().c_str()));
     feval("init");
     qDebug()<<"octave scripts reloaded";
+    emit signalOctaveBusy(false);
+    mutex.unlock();
 }
 
-void OctaveProxy::slotAnalyzeConfidence(const ClassifierInfo * model, QSharedPointer<QList<const P3SessionInfo *>> data){
+void OctaveProxy::analyzeConfidence(const ClassifierInfo * model, QSharedPointer<QList<const P3SessionInfo *>> data){
+    mutex.lock();
+    emit signalOctaveBusy(true);
     feval("stringify", data->at(0)->getSession());
     octave_value p3data = mergedSession(&(*data));
     octave_value_list params(3);
@@ -238,4 +266,7 @@ void OctaveProxy::slotAnalyzeConfidence(const ClassifierInfo * model, QSharedPoi
     params(2)=octave_value(true);
     feval("getConfGaps", params);
     errorCheckEpilogue();
+    qDebug()<<"Analyze Confidence ends in thread: "+(QThread::currentThread()->objectName());
+    emit signalOctaveBusy(false);
+    mutex.unlock();
 }

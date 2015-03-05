@@ -24,7 +24,6 @@ int main(int argc, char *argv[])
     master->start();
     qDebug()<<"Master started";
     mainWindow->show();
-    mainWindow->slotDashboard();
     qDebug()<<"Main window shown";
     return a.exec();
 }

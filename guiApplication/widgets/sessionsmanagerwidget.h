@@ -25,6 +25,7 @@ signals:
     void signalTestModel(QSharedPointer<QList<const P3SessionInfo*>>);
 
 public slots:
+    void enableButtons(bool enable);
     void slotLoadPressed();
     void slotTrainPressed();
     void slotTestPressed();
@@ -42,7 +43,6 @@ private:
    QPushButton* buttonTrain;
    QPushButton* buttonTest;
    QPushButton* buttonDrop;
-   QPushButton* buttonConfidence;
 
    QTableView* tableView;
 

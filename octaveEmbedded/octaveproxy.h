@@ -20,6 +20,7 @@
 #include <QPair>
 #include <classifierinfo.h>
 #include <octaveEmbedded/ClassifierOutput.h>
+#include <QMutex>
 
 #define P3MultiSession "P3SessionLobeShorthand"
 #define P3SingleSession "P3SessionLobenotion"
@@ -40,6 +41,7 @@ signals:
 
     void signalFetchedOutput(QString content);
     void signalOctaveError(QString errmsg);
+    void signalOctaveBusy(bool busy);
 
 public slots:
     void interpreter();
@@ -57,10 +59,11 @@ public slots:
 
     void slotReloadScripts();
 
-    void slotAnalyzeConfidence(const ClassifierInfo* model, QSharedPointer<QList<const P3SessionInfo *>> data);
+    void analyzeConfidence(const ClassifierInfo* model, QSharedPointer<QList<const P3SessionInfo *>> data);
 
 private:
 
+    QMutex mutex;
     QThread outputThread;
     OctaveOutputReader* outputReader;
 

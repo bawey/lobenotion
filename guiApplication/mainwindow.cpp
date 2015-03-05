@@ -2,6 +2,10 @@
 #include "widgets/eegmetadatawidget.h"
 #include <QMessageBox>
 
+const QString MainWindow::STATUS_OCTAVE_BUSY = "Octave running...";
+const QString MainWindow::STATUS_READY = "Ready";
+const QString MainWindow::STATUS_SESSION_ON = "Data taking in progress...";
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
@@ -102,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     stackLayout->addWidget(new QLabel("5: This program is..."));
 
     connectSignalsToSlots();
+
 }
 
 void MainWindow::connectSignalsToSlots(){
@@ -153,6 +158,8 @@ void MainWindow::connectSignalsToSlots(){
     connect(master, SIGNAL(signalNewDaq(const EegDaq*)), this, SLOT(slotNewDaq(const EegDaq*)));
     connect(master, SIGNAL(signalNewDaq(const EegDaq*)), spellerCtl, SLOT(slotNewDaq(const EegDaq*)));
 
+    connect(master->getOctaveProxy(), SIGNAL(signalOctaveBusy(bool)), this, SLOT(slotOctaveBusy(bool)));
+    connect(master->getOctaveProxy(), SIGNAL(signalOctaveBusy(bool)), analysisWidget, SLOT(slotOctaveBusy(bool)));
 }
 
 void MainWindow::slotDashboard(){
@@ -215,4 +222,27 @@ void MainWindow::disconnectDashboardSignals(){
         disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
         disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
+}
+
+void MainWindow::slotOctaveBusy(bool busy){
+    status(busy ? STATUS_OCTAVE_BUSY : STATUS_READY);
+    enableMenus(!busy);
+}
+
+void MainWindow::slotSessionOngoing(bool ongoing){
+    status(ongoing ? STATUS_SESSION_ON : STATUS_READY);
+    enableMenus(!ongoing);
+}
+
+
+void MainWindow::show(){
+    QMainWindow::show();
+    slotDashboard();
+    status(MainWindow::STATUS_READY);
+}
+
+void MainWindow::enableMenus(bool enable){
+    fileMenu->setEnabled(enable);
+    editMenu->setEnabled(enable);
+    helpMenu->setEnabled(enable);
 }

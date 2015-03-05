@@ -35,11 +35,11 @@ private:
     OctaveOutputWidget* octaveWidget = new OctaveOutputWidget();
     ClassifiersManagerWidget* classifiersWidget = new ClassifiersManagerWidget();
 
-
 signals:
 //    void signalAnalyzeConfidence(const ClassifierInfo* const classfier, QList<const P3SessionInfo* const>* data);
 public slots:
     void slotAnalyzeConfidence() const;
+    void slotOctaveBusy(bool busy) const;
 };
 
 #endif // ANALYSISWIDGET_H

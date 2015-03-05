@@ -82,7 +82,6 @@ QVariant SessionsModel::headerData(int section, Qt::Orientation orientation, int
  * @param nameroots absolute file paths without the trailing _summary/_data/_meta/_targets
  */
 void SessionsModel::slotLoadSession(QStringList nameroots){
-
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
     for(int i=0; i<nameroots.length(); ++i){
         beginInsertRows(QModelIndex(), this->sessions.length(), this->sessions.length());

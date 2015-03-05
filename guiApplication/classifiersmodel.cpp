@@ -56,10 +56,19 @@ void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>
     endInsertRows();
 }
 
-void ClassifiersModel::slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
+void ClassifiersModel::testModelJob(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
     ClassifierInfo *desc = classifiers.at(index);
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
     proxy->askClassifier(desc, &*testSessionInfos);
+}
+
+void ClassifiersModel::slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
+    QtConcurrent::run(this, &ClassifiersModel::testModelJob, index, testSessionInfos);
+}
+
+void ClassifiersModel::slotAnalyzeConfidence( QSharedPointer<QList<const P3SessionInfo *>> data) const {
+    OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
+    proxy->analyzeConfidence(chosenClassifier(), data);
 }
 
 int ClassifiersModel::rowCount(const QModelIndex & parent) const{

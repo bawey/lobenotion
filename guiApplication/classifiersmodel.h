@@ -26,7 +26,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
-    ClassifierInfo* chosenClassifier(){
+    ClassifierInfo* chosenClassifier() const{
         return currentClassifier > -1 ? classifiers.at(currentClassifier) : NULL;
     }
 
@@ -39,6 +39,7 @@ signals:
 public slots:
     void slotTrainModel(QSharedPointer<QList<const P3SessionInfo *> > sharedInfos);
     void slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testData);
+    void slotAnalyzeConfidence(QSharedPointer<QList<const P3SessionInfo *> > data ) const ;
     void slotSetCurrentClassifier(int);
     void slotAskCurrentClassifier(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta,
                                   QSharedPointer<QVector<int>> trg);
@@ -47,6 +48,7 @@ private:
     QList<ClassifierInfo*> classifiers;
     int currentClassifier=-1;
     void onlineClasificationJob(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg);
+    void testModelJob(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos);
 };
 
 #endif // CLASSIFIERSMODEL_H

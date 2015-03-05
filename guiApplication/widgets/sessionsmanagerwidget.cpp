@@ -110,7 +110,7 @@ void SessionsManagerWidget::slotAdaptButtonsStateToSelection(){
 
 }
 
-QSharedPointer<QList<const P3SessionInfo*>> SessionsManagerWidget::selectedSessions() const{
+QSharedPointer<QList<const P3SessionInfo*>> SessionsManagerWidget::selectedSessions() const {
     QModelIndexList selectionList = tableView->selectionModel()->selectedRows();
     QList<unsigned short> positions;
     foreach(QModelIndex index, selectionList){
@@ -118,4 +118,15 @@ QSharedPointer<QList<const P3SessionInfo*>> SessionsManagerWidget::selectedSessi
     }
     QSharedPointer<QList<const P3SessionInfo*>> sessionInfos = ((SessionsModel*)tableView->model())->getSessionsAt(positions);
     return sessionInfos;
+}
+
+void SessionsManagerWidget::enableButtons(bool enable){
+    buttonLoad->setEnabled(enable);
+    if(enable){
+        slotAdaptButtonsStateToSelection();
+    }else{
+        buttonDrop->setEnabled(false);
+        buttonTest->setEnabled(false);
+        buttonTrain->setEnabled(false);
+    }
 }

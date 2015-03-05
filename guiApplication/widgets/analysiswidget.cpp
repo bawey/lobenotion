@@ -18,7 +18,12 @@ AnalysisWidget::AnalysisWidget(QWidget *parent) :
 }
 
 void AnalysisWidget::slotAnalyzeConfidence() const{
-    const ClassifierInfo* model = classifiersWidget->selectedClassifier();
-    QtConcurrent::run(Master::getInstance()->getOctaveProxy(), &OctaveProxy::slotAnalyzeConfidence, model,
-        sessionsManagerWidget()->selectedSessions());
+    QtConcurrent::run(Master::getInstance()->getClassifiersModel(),
+                      &ClassifiersModel::slotAnalyzeConfidence, sessionsWidget->selectedSessions());
+}
+
+void AnalysisWidget::slotOctaveBusy(bool busy) const{
+    qDebug()<<"Received octave busy "<<busy;
+    sessionsManagerWidget()->enableButtons(!busy);
+    classifiersManagerWidget()->enableButtons(!busy);
 }

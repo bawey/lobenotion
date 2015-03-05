@@ -78,6 +78,7 @@ signals:
     void startDumpingSession();
 
 public slots:
+    void show();
     void slotDataTaking();
     void slotOnlineUse();
     void slotDashboard();
@@ -87,10 +88,22 @@ public slots:
 
     void slotDisplayError(QString);
     void slotNewDaq(const EegDaq*);
+
+    void slotOctaveBusy(bool busy);
+    void slotSessionOngoing(bool ongoing);
+
 private:
+    static const QString STATUS_OCTAVE_BUSY;
+    static const QString STATUS_READY;
+    static const QString STATUS_SESSION_ON;
+
     void connectDashboardSignals();
     void disconnectDashboardSignals();
+    void status(QString status){
+        statusBar()->showMessage(status);
+    }
 
+    void enableMenus(bool enable);
 };
 
 #endif // MAINWINDOW_H
