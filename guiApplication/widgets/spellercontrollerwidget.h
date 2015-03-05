@@ -20,6 +20,7 @@ public:
     explicit SpellerControllerWidget(QWidget *parent = 0);
 
 private:
+    bool inrun = false;
     QPushButton* buttonStartDaq;
     QPushButton* buttonStopDaq;
     QLabel* daqSignalProblem;

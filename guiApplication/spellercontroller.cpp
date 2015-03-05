@@ -151,6 +151,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         }else{
             emit dataTakingStarted(params);
         }
+        emit signalSessionOngoing(true);
         connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     }
 
@@ -231,6 +232,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
         // Make sure the dumper doesn't capture more frames
         emit dataTakingEnded();
     }
+    emit signalSessionOngoing(false);
     disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), dumper, SLOT(eegFrame(QSharedPointer<EegFrame>)));
     delete params;
 }

@@ -158,6 +158,8 @@ signals:
     void signalSymbolRecognized(QChar symbol);
     void signalSymbolRecognized(QString symbol);
 
+    void signalSessionOngoing(bool ongoing);
+
 public slots:
     /** external components can fireup the data taking with custom params **/
     void startDataTaking(QString phrase, int epochsPerStimuli, int interStimulusInterval, int interPeriodInterval, int highlightDuration, int infoDuration,

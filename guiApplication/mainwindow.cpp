@@ -160,6 +160,8 @@ void MainWindow::connectSignalsToSlots(){
 
     connect(master->getOctaveProxy(), SIGNAL(signalOctaveBusy(bool)), this, SLOT(slotOctaveBusy(bool)));
     connect(master->getOctaveProxy(), SIGNAL(signalOctaveBusy(bool)), analysisWidget, SLOT(slotOctaveBusy(bool)));
+
+    connect(spellerCtl, SIGNAL(signalSessionOngoing(bool)), this, SLOT(slotSessionOngoing(bool)));
 }
 
 void MainWindow::slotDashboard(){

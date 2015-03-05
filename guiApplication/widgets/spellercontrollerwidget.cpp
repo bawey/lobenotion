@@ -134,8 +134,6 @@ void SpellerControllerWidget::connectSignalsToSlots(){
 //    QObject::connect(daqStart, SIGNAL(clicked()), this, SLOT(slotDaqStart()));
 //    QObject::connect(daqStop, SIGNAL(clicked()), this, SLOT(slotDaqStop()));
 //    QObject::connect(daqStop, SIGNAL(clicked()), spellerWidget, SLOT(trainingResetFramesCount()));
-
-
 }
 
 void SpellerControllerWidget::slotSignalFine(bool isFine){
@@ -149,7 +147,9 @@ void SpellerControllerWidget::slotSignalFine(bool isFine){
         //if data taking not in progress and START button disabled due to bad signal
         QColor color(0,0,0,0);
         palette.setColor(daqSignalProblem->foregroundRole(), color);
-        buttonStartDaq->setEnabled(true);
+        if( !inrun ){
+            buttonStartDaq->setEnabled(true);
+        }
     }
     daqSignalProblem->setPalette(palette);
 }
@@ -265,6 +265,7 @@ void SpellerControllerWidget::slotButtonPressedStart(){
 }
 
 void SpellerControllerWidget::adaptButtonsState(bool inrun){
+    this->inrun = inrun;
     buttonStopDaq->setEnabled(inrun);
 
     buttonStartDaq->setEnabled(!inrun);
