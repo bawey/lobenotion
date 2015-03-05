@@ -16,15 +16,15 @@ class AnalysisWidget : public QWidget
 public:
     explicit AnalysisWidget(QWidget *parent = 0);
 
-    const SessionsManagerWidget * const sessionsManagerWidget() const {
+    SessionsManagerWidget * sessionsManagerWidget() const {
         return this->sessionsWidget;
     }
 
-    const OctaveOutputWidget* const octaveOutputWidget() const {
+    OctaveOutputWidget* octaveOutputWidget() const {
         return this->octaveWidget;
     }
 
-    const ClassifiersManagerWidget* const classifiersManagerWidget() const {
+    ClassifiersManagerWidget* classifiersManagerWidget() const {
         return this->classifiersWidget;
     }
 

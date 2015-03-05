@@ -56,7 +56,7 @@ public:
     static int qcChannelsTolerance();
 
     static bool classifierEnabled(QString name);
-    static const QSet<QString>* const runtimeClassifiers(){ return getInstance()->runtimeClassifiersSet; }
+    static QSet<QString>* runtimeClassifiers(){ return getInstance()->runtimeClassifiersSet; }
 
     static int periodOversampling();
     static int crossValidationRounds();

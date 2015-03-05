@@ -146,7 +146,7 @@ int emokit_open(struct emokit_device* s, int device_vid, int device_pid, unsigne
 
 	device_cur = devices;
 	while(device_cur) {
-		if(count == device_index) {
+        if((unsigned int)count == device_index) {
 			s->_dev = hid_open_path(device_cur->path);
 			break;
 		}
@@ -184,7 +184,6 @@ int emokit_read_data(struct emokit_device* s)
 EMOKIT_DECLSPEC
 void emokit_get_crypto_key(struct emokit_device* s, int dev_type) {
 	unsigned char type = (unsigned char) dev_type;
-	int i;
 	unsigned int l = 16;
 	type &= 0xF;
 	type = (type == 0);
@@ -236,7 +235,7 @@ int get_level(unsigned char frame[32], const unsigned char bits[14]) {
 		b = (bits[i] >> 3) + 1;
 		o = bits[i] % 8;
 
-		level |= (frame[b] >> o) & 1;
+        level |= (frame[(int)b] >> o) & 1;
 	}
 	return level;
 }

@@ -11,7 +11,7 @@
 #include <QChar>
 
 
-Stimulant::Stimulant(EegDaq* daqModule, bool trainingOnly) : trainingMode(trainingOnly), daq(daqModule)
+Stimulant::Stimulant(EegDaq* daqModule, bool trainingOnly) : daq(daqModule), trainingMode(trainingOnly)
 {
 
 

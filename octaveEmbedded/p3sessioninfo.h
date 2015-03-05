@@ -56,20 +56,19 @@ public:
     }
 
 private:
-    octave_value loadedSession;
 
     //these are copied from dataTakingParams and it should be somehow factored out into class hierarchy
-    unsigned int stintHighlight;
-    unsigned int stintDim;
-    unsigned int stintInfo;
-    unsigned int stintInterPeriod;
-    unsigned short epochsPerStimulus;
-    QString phrase;
     QString subjectName;
-    QString parentDir;
-    QDateTime created;
-
+    QString phrase;
+    octave_value loadedSession;
     bool clean;
+    QDateTime created;
+    unsigned int stintDim;
+    unsigned int stintHighlight;
+    unsigned short epochsPerStimulus;
+//    unsigned int stintInfo;
+//    unsigned int stintInterPeriod;
+//    QString parentDir;
 
 };
 

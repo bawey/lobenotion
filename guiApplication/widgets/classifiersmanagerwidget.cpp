@@ -99,6 +99,6 @@ void ClassifiersManagerWidget::slotAnalyzeConfidencePressed(){
     }
 }
 
-const ClassifierInfo* const ClassifiersManagerWidget::selectedClassifier() const {
+ClassifierInfo *ClassifiersManagerWidget::selectedClassifier() const {
     return model->chosenClassifier();
 }

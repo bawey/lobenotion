@@ -10,8 +10,8 @@ public:
 
 public:
 
-    const long timestamp;
     const unsigned char counter; //loops from 0 to 128 (129 values)
+    const long timestamp;
     const char gyroX, gyroY;
     const unsigned char battery; //percentage of full charge, read on counter=128
 

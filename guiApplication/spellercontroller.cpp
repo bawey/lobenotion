@@ -95,7 +95,7 @@ void SpellerController::disconnectSignalsFromSlots(){
 void SpellerController::sleepFrameAligned(unsigned long duration){
     int startTime = Timer::getTime();
     QMutex mutex;
-    while(Timer::getTime()-startTime<duration){
+    while((unsigned long)(Timer::getTime()-startTime) < duration){
         mutex.lock();
         daq->getFrameEmittedWaitCondition()->wait(&mutex);
         mutex.unlock();

@@ -26,7 +26,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
-    const ClassifierInfo* const chosenClassifier(){
+    ClassifierInfo* chosenClassifier(){
         return currentClassifier > -1 ? classifiers.at(currentClassifier) : NULL;
     }
 

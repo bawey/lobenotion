@@ -30,10 +30,6 @@ class Master : public QObject
 public:
     static Master* getInstance();
 
-    const EegDaq* getDaq() const {
-        return daq;
-    }
-
     const MetaProcessor* getMetaProcessor() const{
         return metaProcessor;
     }
@@ -61,6 +57,7 @@ public:
 
 private:
     explicit Master(QObject *parent = 0);
+    virtual ~Master();
     static Master* instance;
     static QMutex mutex;
 

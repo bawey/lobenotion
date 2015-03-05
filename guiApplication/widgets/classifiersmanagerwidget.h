@@ -21,7 +21,7 @@ class ClassifiersManagerWidget : public QGroupBox
 
 public:
     explicit ClassifiersManagerWidget(QWidget *parent = 0);
-    const ClassifierInfo * const selectedClassifier() const;
+    ClassifierInfo * selectedClassifier() const;
 
 signals:
     void signalGoOnline();

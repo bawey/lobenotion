@@ -24,6 +24,12 @@ Master::Master(QObject *parent) :
     workerThread->start();
 }
 
+Master::~Master(){
+    if(daq!=NULL){
+        daq->deleteLater();
+    }
+}
+
 void Master::connectModules(){
 
     spellerController->slotSignalFine(metaProcessor->signalFine());
