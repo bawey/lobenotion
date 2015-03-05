@@ -8,6 +8,7 @@
 #include <octave/oct.h>
 #include <QModelIndex>
 #include <classifierinfo.h>
+#include <QtConcurrent/QtConcurrent>
 
 ClassifiersModel::ClassifiersModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -129,7 +130,7 @@ void ClassifiersModel::slotSetCurrentClassifier(int classifierToBe){
     }
 }
 
-void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
+void ClassifiersModel::onlineClasificationJob(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
     if(currentClassifier>=0 && classifiers.length()>currentClassifier){
         int timestart = Timer::getTime();
         P3SessionInfo* info = Master::getInstance()->getOctaveProxy()->toP3Session(data, meta, trg);
@@ -154,4 +155,8 @@ void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > da
         qWarning()<<"Received a request to classify sth, but current classifier is "<<currentClassifier
                     <<" and there are "<<classifiers.length()<<" classfiers";
     }
+}
+
+void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
+    QtConcurrent::run(this, &ClassifiersModel::onlineClasificationJob, data, meta, trg);
 }

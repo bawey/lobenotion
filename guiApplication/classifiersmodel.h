@@ -31,6 +31,7 @@ public:
     }
 
 
+
 signals:
 
     void signalCurrentClassifierChanged(int);
@@ -45,6 +46,7 @@ public slots:
 private:
     QList<ClassifierInfo*> classifiers;
     int currentClassifier=-1;
+    void onlineClasificationJob(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg);
 };
 
 #endif // CLASSIFIERSMODEL_H

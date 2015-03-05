@@ -193,7 +193,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
             online_epochsElapsed = flashNo+1;
             // qDebug()<<"Flashing everything: "<<flashNo<<"/"<<epochsPerStimulus;
             QVector<short>* stimuli = blockRandomizeFlashes();
-            for(int blockNo = 0; blockNo<stimuli->length() && signalNeverBad && !flagAbort; ++blockNo){
+            for(int blockNo = 0; blockNo<stimuli->length() && signalNeverBad && !(flagAbort|flagPeriodClassifiedEarly); ++blockNo){
                 //  qDebug()<<"Flashing stimulus of code: "<<stimuli->at(blockNo);
                 emit commandRowColHighlight(stimuli->at(blockNo));
                 // thread->msleep(highlightDuration);
@@ -295,6 +295,7 @@ void SpellerController::slotCapturedOnlineEpoch(QSharedPointer<QVector<int> > da
     simplified: print character only if confidence threshold was met
 **/
 void SpellerController::slotSymbolRecognized(int row, int col, float confidence){
+    qDebug()<<"SpellerController::slotSymbolRecognized " << confidence;
     if(this->online_epochsElapsed > Settings::getOnlineMinEpochs() &&
             confidence>Settings::getConfidenceThreshold() && !flagPeriodClassifiedEarly){
         //TODO might need synchro
