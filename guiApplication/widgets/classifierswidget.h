@@ -8,12 +8,15 @@
 #include <QLabel>
 #include <QList>
 #include <QCheckBox>
+#include <classifierinfo.h>
 
 class ClassifiersWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit ClassifiersWidget(QWidget *parent = 0);
+    const ClassifierInfo* chosenClassifier() const;
+
 
 private:
     QStackedLayout* stackedLayout = new QStackedLayout(this);

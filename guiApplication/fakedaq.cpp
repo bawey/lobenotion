@@ -15,13 +15,17 @@ float FakeDaq::generateContactQuality(float time){
     if(Settings::isDummyDaqNoisy()){
         return qAbs(qSin(time*(1+(qrand()%100)/1000.0)));
     }else{
-        return 0.85f;
+        return 0.95f;
     }
 }
 
 void FakeDaq::run(){
     while(!_shutdown){
-        msleep((long)(1000.0/128));
+//        if(qrand()%100==0){
+//            qDebug()<<"FakeDaq at work!";
+//        }
+
+        QThread::msleep((long)(1000.0/128));
 
         double time = Timer::getTime()/1000.0;
         int noise = 50 -(qrand()%100);
@@ -38,7 +42,7 @@ void FakeDaq::run(){
         time=time/10;
 
 
-        if(qrand()%1000>0){
+        if(true){
             QSharedPointer<MetaFrame> metaFrame = QSharedPointer<MetaFrame>(new MetaFrame(
                                                                                 (unsigned char)0,(char)0,(char)0,(unsigned char)(100.0 - time),
                                                                                 generateContactQuality(time),

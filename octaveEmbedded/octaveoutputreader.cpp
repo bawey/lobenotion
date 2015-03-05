@@ -16,7 +16,8 @@ void OctaveOutputReader::startReadingFifo(){
 
     int num, fifo;
     char temp[512];
-    if ((fifo = open(this->inputPath.toStdString().c_str(), O_RDONLY)) < 0) {
+    fifo = open(this->inputPath.toStdString().c_str(), O_RDONLY);
+    if (fifo < 0) {
         qWarning()<<strerror(errno);
         return;
     }

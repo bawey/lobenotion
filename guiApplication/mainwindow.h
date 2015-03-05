@@ -25,6 +25,7 @@
 #include <widgets/octaveoutputwidget.h>
 #include <widgets/classifiersmanagerwidget.h>
 #include <widgets/settingswidget.h>
+#include <widgets/analysiswidget.h>
 
 class MainWindow : public QMainWindow
 {
@@ -36,9 +37,7 @@ private:
     SpellerWidget* spellerWidget;
     SpellerControllerWidget* spellerCtlWidget;
     EegMetaDataWidget* metaDataWidget;
-    SessionsManagerWidget* sessionsWidget;
-    OctaveOutputWidget* octaveWidget;
-    ClassifiersManagerWidget* classifiersWidget;
+    AnalysisWidget* analysisWidget;
     SettingsWidget* settingsWidget;
 
     // LAYOUT COMPONENTS:
@@ -46,8 +45,6 @@ private:
     QWidget* dashboardWidget;
     QHBoxLayout* dashboardLayout;
     QHBoxLayout* spellerLayout;
-    QWidget* analysisWidget;
-    QVBoxLayout* analysisLayout;
 
     QMenu* fileMenu;
     QMenu* editMenu;
@@ -63,7 +60,7 @@ private:
 
     // OTHER PROGRAM COMPONENTS:
     Master* master;
-    const EegDaq* daq;
+    const EegDaq* daq = NULL;
     const SpellerController* spellerCtl;
     const MetaProcessor* metaProcessor;
 
@@ -89,8 +86,10 @@ public slots:
     void slotAnalyze();
 
     void slotDisplayError(QString);
+    void slotNewDaq(const EegDaq*);
 private:
-    void prologDataTakingOrOnline();
+    void connectDashboardSignals();
+    void disconnectDashboardSignals();
 
 };
 

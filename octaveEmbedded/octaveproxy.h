@@ -33,7 +33,7 @@ public:
 
     ClassifierInfo *pickBestModel(QList<const P3SessionInfo*>);
 
-    QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const ClassifierInfo* modelDesc, QList<const P3SessionInfo *>);
+    QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const ClassifierInfo* modelDesc, QList<const P3SessionInfo *>* );
     QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const ClassifierInfo* modelDesc, const P3SessionInfo* sessionDesc);
 
 signals:
@@ -57,6 +57,8 @@ public slots:
 
     void slotReloadScripts();
 
+    void slotAnalyzeConfidence(const ClassifierInfo* model, QSharedPointer<QList<const P3SessionInfo *>> data);
+
 private:
 
     QThread outputThread;
@@ -67,7 +69,7 @@ private:
      * @brief mergedSession used to merge several sessions into one when starting a training
      * @return
      */
-    octave_value mergedSession(QList<const P3SessionInfo*>);
+    octave_value mergedSession(QList<const P3SessionInfo *>*);
 
     QSharedPointer<QVector<ClassifierOutput*>> askClassifier(const octave_value *classifier, const octave_value* session);
 };

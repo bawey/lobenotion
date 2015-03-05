@@ -5,10 +5,12 @@
 #include <QString>
 #include <QList>
 #include <QSet>
+#include <master.h>
 
 class Settings : public QSettings
 {
     Q_OBJECT
+    friend class Master;
 public:
     static Settings* getInstance();
 
@@ -100,7 +102,8 @@ public:
 
 private:
     static Settings* instance;
-    explicit Settings();
+    static void instantiate(QString path);
+    explicit Settings(QString path);
     Settings(Settings &);
 
     void updateValue(const QString & key, const QVariant & value);
@@ -111,7 +114,6 @@ signals:
     void configurationChanged(QString paraname);
     
 public slots:
-    static void setDummyModeEnabled(bool isIt);
     static void setEegVisualizerEnabled(bool isIt);
     static void setSpellerHighlightStint(int thestint);
     static void setSpellerDimStint(int thestint);
@@ -133,6 +135,8 @@ public slots:
     static void setClassifiersConfig(QString path);
     static void setPeriodOversampling(int factor);
     static void setCrossvalidationRounds(int count);
+    static void setDummyDaqNoisy(bool noisy);
+    static void setDummyDaqEnabled(bool enabled);
 };
 
 #endif // SETTINGS_H

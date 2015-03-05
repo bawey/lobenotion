@@ -7,6 +7,9 @@
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QScrollArea(parent)
 {
+    layout->addRow(labelDummyDaq, valueDummyDaq);
+    layout->addRow(labelDummyNoise, valueDummyNoise);
+
     this->valueChannelsTolerance->setRange(0, 12);
     this->valueGoodness->setRange(0, 1);
     valueGoodness->setSingleStep(0.01);
@@ -62,6 +65,8 @@ void SettingsWidget::connectSignalsSlots(){
 
     connect(valueXvFold, SIGNAL(valueChanged(int)), Settings::getInstance(), SLOT(setCrossvalidationRounds(int)));
     connect(valueOversampling, SIGNAL(valueChanged(int)), Settings::getInstance(), SLOT(setPeriodOversampling(int)));
+    connect(valueDummyDaq, SIGNAL(clicked(bool)), Settings::getInstance(), SLOT(setDummyDaqEnabled(bool)));
+    connect(valueDummyNoise, SIGNAL(clicked(bool)), Settings::getInstance(), SLOT(setDummyDaqNoisy(bool)));
 }
 
 /**
@@ -79,7 +84,8 @@ void SettingsWidget::revalidate(){
     valueClassCnf->setText(s->classifiersConfig());
     valueOversampling->setValue(s->periodOversampling());
     valueXvFold->setValue(s->crossValidationRounds());
-
+    valueDummyDaq->setChecked(s->isDummyModeEnabled());
+    valueDummyNoise->setChecked(s->isDummyDaqNoisy());
 }
 
 void SettingsWidget::pickDir(QWidget* field){

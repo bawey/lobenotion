@@ -8,7 +8,9 @@
 #include <QVBoxLayout>
 #include <QSharedPointer>
 #include <octaveEmbedded/p3sessioninfo.h>
+#include <classifierinfo.h>
 #include <QList>
+#include "classifiersmodel.h"
 
 
 
@@ -19,21 +21,26 @@ class ClassifiersManagerWidget : public QGroupBox
 
 public:
     explicit ClassifiersManagerWidget(QWidget *parent = 0);
+    const ClassifierInfo * const selectedClassifier() const;
 
 signals:
     void signalGoOnline();
+    void signalAnalyzeConfidence();
 public slots:
     void slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo*>>);
 private slots:
     void slotButtonDropPressed();
     void slotButtonOnlinePressed();
     void slotAdaptButtonsStateToSelection();
+    void slotAnalyzeConfidencePressed();
 
 private:
+    ClassifiersModel* model;
     QVBoxLayout* mainLayout;
     QTableView* tableView;
     QPushButton* buttonDrop;
     QPushButton* buttonOnline;
+    QPushButton* buttonConfidence;
 
     void connectInternalSignals();
     bool ensureOneSelected();

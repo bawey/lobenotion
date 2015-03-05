@@ -11,12 +11,14 @@
 #include <QPushButton>
 #include <QList>
 #include <octaveEmbedded/p3sessioninfo.h>
+#include <QSharedPointer>
 
 class SessionsManagerWidget : public QGroupBox
 {
     Q_OBJECT
 public:
     explicit SessionsManagerWidget(QAbstractTableModel* model, QWidget *parent = 0);
+    QSharedPointer<QList<const P3SessionInfo*>> selectedSessions() const;
 
 signals:
 
@@ -30,7 +32,7 @@ public slots:
 
 private slots:
     void slotAdaptButtonsStateToSelection();
-    
+
 private:
    QVBoxLayout* topLayout;
    QHBoxLayout* buttonsLayout;
@@ -40,6 +42,7 @@ private:
    QPushButton* buttonTrain;
    QPushButton* buttonTest;
    QPushButton* buttonDrop;
+   QPushButton* buttonConfidence;
 
    QTableView* tableView;
 

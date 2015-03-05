@@ -18,11 +18,12 @@ void EpocDaq::run(){
     if(response != 0)
     {
         qDebug("CANNOT CONNECT: %d\n", response);
+        return;
     }
 
-    while(true){
+    while(!_shutdown){
         if(!this->isDaemonRunning){
-            this->sleep(500);
+            QThread::msleep(500);
             continue;
         }
 

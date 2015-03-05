@@ -58,7 +58,7 @@ void ClassifiersModel::slotTrainModel(QSharedPointer<QList<const P3SessionInfo*>
 void ClassifiersModel::slotTestModel(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos){
     ClassifierInfo *desc = classifiers.at(index);
     OctaveProxy* proxy = Master::getInstance()->getOctaveProxy();
-    proxy->askClassifier(desc, *testSessionInfos);
+    proxy->askClassifier(desc, &*testSessionInfos);
 }
 
 int ClassifiersModel::rowCount(const QModelIndex & parent) const{

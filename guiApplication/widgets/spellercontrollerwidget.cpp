@@ -208,9 +208,6 @@ void SpellerControllerWidget::slotOnlineModeEnd(){
 
 void SpellerControllerWidget::slotDataTakingStarted(){
     adaptButtonsState(true);
-    if(labelError->isVisible()){
-        labelError->hide();
-    }
 }
 
 void SpellerControllerWidget::slotDataTakingFinished(){
@@ -283,4 +280,8 @@ void SpellerControllerWidget::adaptButtonsState(bool inrun){
     classifierCombo->setEnabled(!inrun);
     confidenceThreshold->setEnabled(!inrun);
     confidenceSetoffPeriod->setEnabled(!inrun);
+
+    if(inrun && labelError->isVisible()){
+        labelError->hide();
+    }
 }

@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QDebug>
+#include "master.h"
 
 const QString Settings::DEF_SPELLER_CHARSET="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 1 2 3 4 5 6 7 8 9 0";
 
@@ -39,20 +40,16 @@ const QString Settings::OPT_CLASSIFIERS_CONFIG = "classifiersConfig";
 
 Settings* Settings::instance;
 
-Settings::Settings() :
-    QSettings("/home/bawey/Forge/lobenotion/lobenotion.ini", QSettings::NativeFormat)
+Settings::Settings(QString path) :
+    QSettings(path, QSettings::NativeFormat)
 {
 }
 
+void Settings::instantiate(QString path){
+    Settings::instance = new Settings(path);
+}
+
 Settings* Settings::getInstance(){
-    static QMutex mutex;
-    if(Settings::instance == NULL){
-        mutex.lock();
-        if(Settings::instance==NULL){
-            Settings::instance=new Settings();
-        }
-        mutex.unlock();
-    }
     return Settings::instance;
 }
 
@@ -68,13 +65,17 @@ bool Settings::isDummyModeEnabled(){
     return reply.compare("true", Qt::CaseInsensitive)==0;
 }
 
+void Settings::setDummyDaqEnabled(bool enabled){
+    getInstance()->updateValue(Settings::OPT_DUMMY_DAQ, enabled);
+}
+
 bool Settings::isDummyDaqNoisy(){
     QString reply = getInstance()->value(Settings::OPT_DUMMY_DAQ_NOISY, QString("true")).toString();
     return reply.compare("true", Qt::CaseInsensitive)==0;
 }
 
-void Settings::setDummyModeEnabled(bool isIt){
-    getInstance()->setValue(Settings::OPT_DUMMY_DAQ, isIt);
+void Settings::setDummyDaqNoisy(bool noisy){
+    getInstance()->updateValue(Settings::OPT_DUMMY_DAQ_NOISY, noisy);
 }
 
 // EEG VISUALIZER aka PLOT WIDGET

@@ -1,5 +1,9 @@
 #include "master.h"
 #include <QDebug>
+#include <QFileDialog>
+#include <QApplication>
+#include <QCoreApplication>
+#include <QFileInfo>
 
 Master* Master::instance=NULL;
 QMutex Master::mutex;
@@ -7,39 +11,21 @@ QMutex Master::mutex;
 Master::Master(QObject *parent) :
     QObject(parent)
 {
-    if(Settings::isDummyModeEnabled()){
-        qDebug("dummy mode enabled");
-        daq=new FakeDaq();
-    }else{
-        qDebug("dummy mode disabled");
-        daq=new EpocDaq();
-    }
+    instantiateSettings();
 
-
-    qDebug("DAQ started");
-
-    /** DAQ starting and stopping  needs to be moved into main window **/
-
-
-
+    spellerController = new SpellerController(Settings::getSpellerMatrixSize(), Settings::getSpellerCharset());
     metaProcessor = new MetaProcessor();
-    metaProcessor->moveToThread(daq);
-
-    spellerController = new SpellerController(daq, Settings::getSpellerMatrixSize(), Settings::getSpellerCharset());
-
+    workerThread = new QThread();
+    metaProcessor->moveToThread(workerThread);
     sessionsModel = new SessionsModel();
     classifiersModel = new ClassifiersModel();
-
     octaveProxy = new OctaveProxy();
-
-    daq->start();
-
     connectModules();
+    workerThread->start();
 }
 
 void Master::connectModules(){
-    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
-    connect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
+
     spellerController->slotSignalFine(metaProcessor->signalFine());
 
     connect(spellerController, SIGNAL(requestPeriodClassification(QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >,QSharedPointer<QVector<int> >)),
@@ -65,4 +51,68 @@ Master* Master::getInstance(){
 
 void Master::slotErrorRelay(QString errmsg){
     emit signalErrorRelay(errmsg);
+}
+
+void Master::instantiateSettings(){
+    QStringList args = QCoreApplication::instance()->arguments();
+    QString configPath = NULL;
+    for(int i=0; i<args.length(); ++i){
+        if(args.at(i)=="--config" && i<args.length()-1){
+            configPath = args.at(i+1);
+            break;
+        }
+    }
+    while (!QFileInfo(configPath).isReadable()){
+        qDebug()<<"File at "<<configPath<<" unreadanble";
+        configPath = QFileDialog::getOpenFileName(0, "Pick a config file.");
+    }
+    Settings::instantiate(configPath);
+}
+
+void Master::slotConfigChanged(QString property){
+    if(property == Settings::OPT_DUMMY_DAQ){
+        recreateDaq();
+    }
+}
+
+void Master::recreateDaq(){
+    EegDaq* oldDaq = daq;
+
+    if(oldDaq!=NULL){
+        disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+        disconnect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
+        disconnect(this, SIGNAL(signalLaunchDaq()), daq, SLOT(slotLaunch()));
+    }
+
+    if(Settings::isDummyModeEnabled()){
+        qDebug("Dummy mode enabled");
+        daq=new FakeDaq();
+    }else{
+        qDebug("Dummy mode disabled");
+        daq=new EpocDaq();
+    }
+    daq->moveToThread(workerThread);
+
+    qDebug("DAQ started");
+    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+    connect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
+    connect(this, SIGNAL(signalLaunchDaq()), daq, SLOT(slotLaunch()), Qt::ConnectionType::QueuedConnection);
+    if(oldDaq != NULL){
+        oldDaq->shutdown();
+        oldDaq->deleteLater();
+    }
+    emit signalNewDaq(daq);
+    emit signalLaunchDaq();
+    if(!workerThread->isRunning()){
+        qDebug()<<"Worker thread no longer running";
+        workerThread->start();
+    }
+}
+
+
+void Master::start(){
+    if(started == false){
+       recreateDaq();
+       started=true;
+    }
 }

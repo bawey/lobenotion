@@ -5,6 +5,7 @@
 #include <QVector>
 #include <octaveEmbedded/p3sessioninfo.h>
 #include <QDateTime>
+#include <QSharedPointer>
 
 class SessionsModel : public QAbstractTableModel
 {
@@ -18,8 +19,8 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
 
-    QList<const P3SessionInfo*>* getSessionsAt(QList<unsigned short> positions) const {
-        QList<const P3SessionInfo* >* list = new QList<const P3SessionInfo*>();
+    QSharedPointer<QList<const P3SessionInfo*>> getSessionsAt(QList<unsigned short> positions) const {
+        QSharedPointer<QList<const P3SessionInfo* >> list(new QList<const P3SessionInfo*>());
         foreach (unsigned short pos, positions) {
             list->append(sessions.at(pos));
         }

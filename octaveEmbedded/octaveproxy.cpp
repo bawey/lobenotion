@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <master.h>
 #include <Cell.h>
+#include <QSharedPointer>
 
 
 OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
@@ -14,7 +15,7 @@ OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :
     string_vector octave_argv (2);
     octave_argv(0) = "embedded";
     octave_argv(1) = "-q";
-    octave_main (2, octave_argv.c_str_vec (), 1);
+    octave_main (2, octave_argv.c_str_vec(), 1);
     slotReloadScripts();
 
     if(redirectOutput){
@@ -65,7 +66,7 @@ QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const Clas
     return this->askClassifier(&(modelDesc->classifier), sessionDesc->getSessionPtr());
 }
 
-QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const ClassifierInfo *modelDesc, QList<const P3SessionInfo *> infos){
+QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const ClassifierInfo *modelDesc, QList<const P3SessionInfo *>* infos){
     octave_value testSession = mergedSession(infos);
     return this->askClassifier(&(modelDesc->classifier), &testSession);
 }
@@ -94,14 +95,14 @@ QSharedPointer<QVector<ClassifierOutput*>> OctaveProxy::askClassifier(const octa
     return QSharedPointer<QVector<ClassifierOutput*>>(results);
 }
 
-octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> infos){
+octave_value OctaveProxy::mergedSession(QList<const P3SessionInfo *> *infos){
     octave_value_list args(2);
     octave_value_list merged(1);
-    merged(0)=infos.at(0)->getSession();
-    if(infos.length()>1){
-        for(int i=1; i<infos.length(); ++i){
+    merged(0)=infos->at(0)->getSession();
+    if(infos->length()>1){
+        for(int i=1; i<infos->length(); ++i){
             args(0)=merged(0);
-            args(1)=infos.at(i)->getSession();
+            args(1)=infos->at(i)->getSession();
             merged = feval("P3SessionMerge", args);
         }
     }
@@ -148,6 +149,7 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
         desc->classifier=results(0);
         desc->parameters = QString::fromStdString(classifierString);
         desc->classifier = results(0);
+        desc->classifierCell = results(1);
         return desc;
     }
 }
@@ -224,4 +226,16 @@ bool OctaveProxy::errorCheckEpilogue(){
 void OctaveProxy::slotReloadScripts(){
     feval("cd", octave_value_list(Settings::octaveScriptsRoot().toStdString().c_str()));
     feval("init");
+    qDebug()<<"octave scripts reloaded";
+}
+
+void OctaveProxy::slotAnalyzeConfidence(const ClassifierInfo * model, QSharedPointer<QList<const P3SessionInfo *>> data){
+    feval("stringify", data->at(0)->getSession());
+    octave_value p3data = mergedSession(&(*data));
+    octave_value_list params(3);
+    params(0)=p3data;
+    params(1)=octave_value(model->classifierCell);
+    params(2)=octave_value(true);
+    feval("getConfGaps", params);
+    errorCheckEpilogue();
 }

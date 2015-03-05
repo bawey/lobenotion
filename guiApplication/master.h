@@ -15,6 +15,7 @@
 #include <sessionsmodel.h>
 #include <classifiersmodel.h>
 #include <octaveEmbedded/octaveproxy.h>
+#include <QThread>
 
 /**
  * @brief The Master class
@@ -63,21 +64,28 @@ private:
     static Master* instance;
     static QMutex mutex;
 
-    EegDaq* daq;
+    EegDaq* daq = NULL;
 
     MetaProcessor* metaProcessor;
     SpellerController* spellerController;
     SessionsModel* sessionsModel;
     ClassifiersModel* classifiersModel;
     OctaveProxy* octaveProxy;
+    bool started = false;
+    QThread *workerThread;
 
     void connectModules();
-
+    void instantiateSettings();
+    void recreateDaq();
 
 signals:
     void signalErrorRelay(QString errmsg);
+    void signalNewDaq(const EegDaq* daq);
+    void signalLaunchDaq();
 public slots:
     void slotErrorRelay(QString errmsg);
+    void slotConfigChanged(QString property);
+    void start();
 };
 
 #endif // MASTER_H

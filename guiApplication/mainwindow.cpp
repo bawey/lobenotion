@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // copy references to other modules
     master = Master::getInstance();
-    daq = master->getDaq();
     spellerCtl = master->getSpellerController();
     metaProcessor = master->getMetaProcessor();
 
@@ -16,9 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
     eegPlot=new EegPlotWidget();
     metaDataWidget = new EegMetaDataWidget();
     spellerCtlWidget= new SpellerControllerWidget();
-    sessionsWidget = new SessionsManagerWidget(master->getSessionsModel());
-    octaveWidget = new OctaveOutputWidget();
-    classifiersWidget = new ClassifiersManagerWidget();
     settingsWidget = new SettingsWidget();
 
     // Menus: File
@@ -99,26 +95,16 @@ MainWindow::MainWindow(QWidget *parent) :
     spellerWrapperWidget->layout()->addWidget(spellerCtlWidget);
     stackLayout->addWidget(spellerWrapperWidget);
 
-    analysisWidget = new QWidget();
-    analysisLayout = new QVBoxLayout();
-    QHBoxLayout* sessionsModelsLayout = new QHBoxLayout();
-    analysisWidget->setLayout(analysisLayout);
-    sessionsModelsLayout->addWidget(sessionsWidget);
-    sessionsModelsLayout->addWidget(classifiersWidget);
-    analysisLayout->addLayout(sessionsModelsLayout);
-    analysisLayout->addWidget(octaveWidget);
+    analysisWidget = new AnalysisWidget(this);
     stackLayout->addWidget(analysisWidget);
 
     stackLayout->addWidget(settingsWidget);
     stackLayout->addWidget(new QLabel("5: This program is..."));
 
     connectSignalsToSlots();
-
-    slotDashboard();
 }
 
 void MainWindow::connectSignalsToSlots(){
-    connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
     connect(metaProcessor, SIGNAL(signalFine(bool)), metaDataWidget, SLOT(signalGood(bool)));
     metaDataWidget->signalGood(metaProcessor->signalFine());
 
@@ -147,14 +133,14 @@ void MainWindow::connectSignalsToSlots(){
 
     // spellerController to mainWindow - prevent switching tabs
 
-    connect(master->getOctaveProxy(), SIGNAL(signalFetchedOutput(QString)), octaveWidget, SLOT(slotOctaveOutput(QString)));
+    connect(master->getOctaveProxy(), SIGNAL(signalFetchedOutput(QString)), analysisWidget->octaveOutputWidget(), SLOT(slotOctaveOutput(QString)));
 
     //Passing sessions as test material: sessions manager widget -> classifiers manager widget
-    connect(sessionsWidget, SIGNAL(signalTestModel(QSharedPointer<QList<const P3SessionInfo*> >)), classifiersWidget,
-            SLOT(slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo*> >)));
+    connect(analysisWidget->sessionsManagerWidget(), SIGNAL(signalTestModel(QSharedPointer<QList<const P3SessionInfo*> >)),
+            analysisWidget->classifiersManagerWidget(), SLOT(slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo*> >)));
 
     //Launching online mode from classifiers management panel
-    connect(classifiersWidget, SIGNAL(signalGoOnline()), this, SLOT(slotOnlineUse()));
+    connect(analysisWidget->classifiersManagerWidget(), SIGNAL(signalGoOnline()), this, SLOT(slotOnlineUse()));
     connect(master, SIGNAL(signalErrorRelay(QString)), this, SLOT(slotDisplayError(QString)));
 
     // Classes reacting to configuration changes
@@ -162,48 +148,45 @@ void MainWindow::connectSignalsToSlots(){
     connect(Settings::getInstance(), SIGNAL(configurationChanged()), metaProcessor, SLOT(configurationChanged()),
              Qt::DirectConnection);
 
+    connect(Settings::getInstance(), SIGNAL(configurationChanged(QString)), master, SLOT(slotConfigChanged(QString)));
+
+    connect(master, SIGNAL(signalNewDaq(const EegDaq*)), this, SLOT(slotNewDaq(const EegDaq*)));
+    connect(master, SIGNAL(signalNewDaq(const EegDaq*)), spellerCtl, SLOT(slotNewDaq(const EegDaq*)));
+
 }
 
 void MainWindow::slotDashboard(){
-    QObject::connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
-
+    connectDashboardSignals();
     stackLayout->setCurrentIndex(0);
 }
 
-void MainWindow::prologDataTakingOrOnline(){
-    /** disconnect dashboard from the signals it may receive **/
-    QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
-
-    /** connect DAQ widgets ... if any **/
-
-    /** switch panes **/
-    stackLayout->setCurrentIndex(1);
-}
-
 void MainWindow::slotDataTaking(){
-    prologDataTakingOrOnline();
+    disconnectDashboardSignals();
+    stackLayout->setCurrentIndex(1);
     spellerCtlWidget->switchOffline();
     spellerCtlWidget->revalidate();
 }
 
 void MainWindow::slotOnlineUse(){
-    prologDataTakingOrOnline();
+    disconnectDashboardSignals();
+    stackLayout->setCurrentIndex(1);
     spellerCtlWidget->switchOnline();
     spellerCtlWidget->revalidate();
 }
 
 void MainWindow::slotAnalyze(){
-    /** disconnect dashboard from the signals it may receive **/
-    QObject::disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    disconnectDashboardSignals();
     stackLayout->setCurrentIndex(2);
 }
 
 void MainWindow::slotPreferences(){
+    disconnectDashboardSignals();
     settingsWidget->revalidate();
     stackLayout->setCurrentIndex(3);
 }
 
 void MainWindow::slotAbout(){
+    disconnectDashboardSignals();
     stackLayout->setCurrentIndex(4);
 }
 
@@ -213,4 +196,23 @@ void MainWindow::slotDisplayError(QString errmsg){
     qmb.setText(errmsg);
     qmb.setIcon(QMessageBox::Icon::Warning);
     qmb.exec();
+}
+
+void MainWindow::slotNewDaq(const EegDaq * newDaq){
+    qDebug()<<"MainWindow::settingNewDaq";
+    this->daq = newDaq;
+}
+
+void MainWindow::connectDashboardSignals(){
+    if(daq!=NULL){
+        connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+        connect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    }
+}
+
+void MainWindow::disconnectDashboardSignals(){
+    if( daq!=NULL ){
+        disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaDataWidget, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
+        disconnect(daq, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), eegPlot, SLOT(eegFrame(QSharedPointer<EegFrame>)));
+    }
 }

@@ -9,7 +9,7 @@
 #include <QThread>
 #include <QWaitCondition>
 
-class EegDaq : public QThread
+class EegDaq : public QObject
 {
     Q_OBJECT
 
@@ -20,11 +20,13 @@ protected:
 public:
     EegDaq();
     QWaitCondition* getFrameEmittedWaitCondition() const;
+    virtual void run() = 0;
 signals:
     void eegFrame(QSharedPointer<EegFrame> eegFrame);
     void metaFrame(QSharedPointer<MetaFrame> metaFrame);
 
 public slots:
+    void slotLaunch();
     void frameProducedSlot(){
     // qDebug("this is important. means we can get frame notifications in the DAQ");
         frameEmitted->wakeAll();

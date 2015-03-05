@@ -20,8 +20,8 @@
  * Scenario is strictly constrained with respect to: number of blinks, number of dims
  *
  */
-SpellerController::SpellerController(EegDaq* daqPtr, unsigned short int newMatrixSize, QString symbols, QObject *parent) :
-    daq(daqPtr), QObject(parent), matrixSize(newMatrixSize)
+SpellerController::SpellerController(unsigned short int newMatrixSize, QString symbols, QObject *parent) :
+    QObject(parent), matrixSize(newMatrixSize)
 {
     this->keyboardSymbols=QVector<QString>();
 
@@ -77,7 +77,6 @@ SpellerController::~SpellerController(){
 }
 
 void SpellerController::disconnectSignalsFromSlots(){
-    disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), this, SLOT(eegMetaFrame(QSharedPointer<MetaFrame>)));
     disconnect(this, SIGNAL(commandRowColHighlight(short)), dumper, SLOT(spellerHighlight(short)));
     disconnect(this, SIGNAL(dataTakingStarted(dataTakingParams*)), dumper, SLOT(startDumpingSession(dataTakingParams*)));
     disconnect(this, SIGNAL(dataTakingEnded()), dumper, SLOT(closeDumpingSession()));
@@ -308,4 +307,9 @@ void SpellerController::slotSymbolRecognized(int row, int col, float confidence)
             emit signalSymbolRecognized(symbolStr);
         }
     }
+}
+
+void SpellerController::slotNewDaq(const EegDaq *newDaq){
+    qDebug()<<"Speller controller  notified of the new DAQ";
+    this->daq = newDaq;
 }

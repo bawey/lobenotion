@@ -10,8 +10,9 @@
 ClassifiersManagerWidget::ClassifiersManagerWidget(QWidget *parent) :
     QGroupBox("Trained models",parent)
 {
+    model = Master::getInstance()->getClassifiersModel();
     tableView = new QTableView();
-    tableView->setModel(Master::getInstance()->getClassifiersModel());
+    tableView->setModel(model);
     tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
     for (int c = 0; c < tableView->horizontalHeader()->count(); ++c)
@@ -27,6 +28,7 @@ ClassifiersManagerWidget::ClassifiersManagerWidget(QWidget *parent) :
 //    buttonDrop->setSizePolicy(QSizePolicy::Fixed);
     buttonOnline = new QPushButton("Use online");
 //    buttonOnline->setSizePolicy(QSizePolicy::Fixed);
+    buttonConfidence = new QPushButton("Analyze confidence");
 
     mainLayout = new QVBoxLayout();
     mainLayout->addWidget(tableView);
@@ -34,6 +36,7 @@ ClassifiersManagerWidget::ClassifiersManagerWidget(QWidget *parent) :
 
     buttonsContainer->addWidget(buttonDrop);
     buttonsContainer->addWidget(buttonOnline);
+    buttonsContainer->addWidget(buttonConfidence);
 
     mainLayout->addLayout(buttonsContainer);
     this->setLayout(mainLayout);
@@ -46,6 +49,7 @@ void ClassifiersManagerWidget::connectInternalSignals(){
     connect(buttonDrop, SIGNAL(clicked()), this, SLOT(slotButtonDropPressed()));
     connect(buttonOnline, SIGNAL(clicked()), this, SLOT(slotButtonOnlinePressed()));
     connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(slotAdaptButtonsStateToSelection()));
+    connect(buttonConfidence, SIGNAL(clicked()), this, SLOT(slotAnalyzeConfidencePressed()));
 }
 
 void ClassifiersManagerWidget::slotButtonDropPressed(){
@@ -55,6 +59,7 @@ void ClassifiersManagerWidget::slotButtonDropPressed(){
 void ClassifiersManagerWidget::slotAdaptButtonsStateToSelection(){
     buttonDrop->setEnabled(tableView->selectionModel()->selectedRows().length()>0);
     buttonOnline->setEnabled(tableView->selectionModel()->selectedRows().length()>0);
+    buttonConfidence->setEnabled(tableView->selectionModel()->selectedRows().length()>0);
 }
 
 void ClassifiersManagerWidget::slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo *> > sessions){
@@ -86,4 +91,14 @@ void ClassifiersManagerWidget::slotButtonOnlinePressed(){
         int selectedClassifier = tableView->selectionModel()->selectedRows().at(0).row();
         Master::getInstance()->getClassifiersModel()->slotSetCurrentClassifier(selectedClassifier);
     }
+}
+
+void ClassifiersManagerWidget::slotAnalyzeConfidencePressed(){
+    if(ensureOneSelected()){
+        emit signalAnalyzeConfidence();
+    }
+}
+
+const ClassifierInfo* const ClassifiersManagerWidget::selectedClassifier() const {
+    return model->chosenClassifier();
 }

@@ -51,7 +51,7 @@ public:
     constexpr static unsigned char ERRCODE_ABORTED = 4;
     constexpr static unsigned char ERRCODE_PHRASE = 8;
 
-    explicit SpellerController(EegDaq* daq, unsigned short int matrixSize, QString characters, QObject *parent = 0);
+    explicit SpellerController(unsigned short int matrixSize, QString characters, QObject *parent = 0);
     virtual ~SpellerController();
 
     /**
@@ -83,7 +83,7 @@ private:
     int online_epochsElapsed = 0;
     bool flagPeriodClassifiedEarly = false;
 
-    EegDaq* daq;
+    const EegDaq* daq;
 
     QThread* thread;
     unsigned short int matrixSize = 0;
@@ -179,6 +179,9 @@ public slots:
     void slotCapturedOnlineEpoch(QSharedPointer<QVector<int>> data, QSharedPointer<QVector<int>> meta, QSharedPointer<QVector<int>> trg);
 
     void slotSymbolRecognized(int row, int col, float confidence);
+
+    void slotNewDaq(const EegDaq* daq);
+
 };
 
 #endif // SPELLERCONTROLLER_H

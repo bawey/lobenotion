@@ -1,14 +1,14 @@
 #include "eegdaq.h"
+#include <QDebug>
 
 EegDaq::EegDaq() :
-    QThread()
+    QObject()
 {
     frameEmitted=new QWaitCondition();
     qRegisterMetaType<QSharedPointer<EegFrame>>("QSharedPointer<EegFrame>");
     qRegisterMetaType<QSharedPointer<MetaFrame>>("QSharedPointer<MetaFrame>");
 
     connect(this, SIGNAL(eegFrame(QSharedPointer<EegFrame>)), this, SLOT(frameProducedSlot()));
-    this->moveToThread(this);
 }
 
 void EegDaq::shutdown(){
@@ -17,4 +17,9 @@ void EegDaq::shutdown(){
 
 QWaitCondition *EegDaq::getFrameEmittedWaitCondition() const{
     return frameEmitted;
+}
+
+void EegDaq::slotLaunch(){
+    qDebug()<<"Daq slotLaunch at work";
+    run();
 }

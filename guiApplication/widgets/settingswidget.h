@@ -43,6 +43,8 @@ private:
     QLabel *labelClassifierCnf = new QLabel("Classifiers config");
     QLabel *labelPeriodOversampling = new QLabel("Period oversampling");
     QLabel *labelXvFold = new QLabel("Cross-validation rounds");
+    QLabel *labelDummyDaq = new QLabel("Enable dummy DAQ");
+    QLabel *labelDummyNoise = new QLabel("Generate dummy DAQ noise");
 
 
     QCheckBox *valueInterrupt = new QCheckBox(this);
@@ -63,6 +65,9 @@ private:
     QLineEdit *valueClassCnf = new QLineEdit(this);
     QHBoxLayout *rowClassCnf = new QHBoxLayout();
     QPushButton *buttonClassCnf = new QPushButton(this);
+
+    QCheckBox *valueDummyDaq = new QCheckBox(this);
+    QCheckBox *valueDummyNoise = new QCheckBox(this);
 
     void connectSignalsSlots();
 };

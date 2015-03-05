@@ -6,7 +6,7 @@ class FakeDaq : public EegDaq
 {
 public:
     FakeDaq();
-    void run();
+    virtual void run();
 private:
     float generateContactQuality(float time);
 };
