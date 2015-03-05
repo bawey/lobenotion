@@ -29,7 +29,8 @@ EegPlotWidget::EegPlotWidget(QString title, QWidget *parent) :
         labels->addWidget(labelb);
 
 
-        QCustomPlot *plot = new QCustomPlot();
+        QCustomPlot *plot = new QCustomPlot(this);
+        plot->setMinimumHeight(10);
 //        plot->xAxis->setLabel("t");
 //        plot->yAxis->setLabel("v");
         plot->xAxis->setVisible(false);

@@ -13,7 +13,7 @@ SpellerWidget::SpellerWidget()
     highlighted=0;
     stackedLayout=new QStackedLayout();
     message=new QLabel("P300 speller");
-    message->setFont(QFont("Arial", 40));
+    message->setFont(QFont("Arial", 20));
     message->setStyleSheet(SpellerWidget::getCellRegularStyle());
     message->setAlignment(Qt::AlignCenter|Qt::AlignHCenter);
     stackedLayout->addWidget(message);
@@ -34,11 +34,11 @@ SpellerWidget::SpellerWidget()
             QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
             label->setAlignment(Qt::AlignCenter|Qt::AlignHCenter);
             label->setSizePolicy(sizePolicy);
-            label->setMinimumHeight(120);
+            label->setMinimumHeight(90);
             label->setContentsMargins(0,0,0,0);
-            label->setMinimumWidth(120);
+            label->setMinimumWidth(90);
             label->setStyleSheet(SpellerWidget::getCellRegularStyle());
-            QFont f( "Arial", 20);
+            QFont f( "Arial", 15);
             label->setFont( f);
             keyboardLayout->addWidget(label, r, c, 1, 1, Qt::AlignCenter|Qt::AlignHCenter);
 
@@ -71,6 +71,7 @@ void SpellerWidget::resizeEvent(QResizeEvent* event){
     for(int i=0; i<MATRIX_DIM*MATRIX_DIM; ++i){
           tiles[i]->setFont(font);
     }
+    message->setFont(font);
 
     this->layout()->setContentsMargins(0,0,0,0);
     event->accept();

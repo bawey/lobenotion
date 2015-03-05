@@ -160,7 +160,7 @@ void SpellerController::dataTakingJob(dataTakingParams *params){
     for(int targetIdx = 0; (symbolsLimit == 0 || targetIdx<symbolsLimit) && signalNeverBad && !flagAbort; ++targetIdx){
         emit commandNextPeriod();
         if(params->isOnline){
-            emit commandShowMessage("Get ready for the next character!");
+            emit commandShowMessage("Next symbol");
         }else{
             QString target = params->phrase.mid(targetIdx, 1);
             unsigned short int number = keyboardSymbols.indexOf(target);

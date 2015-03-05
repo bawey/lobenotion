@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     menuBar()->addMenu(helpMenu);
 
     // General stuff: title
-    this->setWindowTitle("Lobenotion 0.4");
+    this->setWindowTitle("Lobenotion 0.9");
 
     // Central widget
     this->setCentralWidget(new QWidget());
