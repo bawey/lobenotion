@@ -3,7 +3,7 @@ include(../defaults.pri)
 TEMPLATE=lib
 CONFIG+= staticlib
 QT = core gui widgets printsupport
-TARGET = ../bin/lobenotion-core
+TARGET = ../lib/lobenotion-core
 
 SOURCES = classifiersmodel.cpp eegdaq.cpp eegframe.cpp epocdaq.cpp fakedaq.cpp master.cpp
 SOURCES+= metaframe.cpp metaprocessor.cpp sessionsmodel.cpp settings.cpp spellercontroller.cpp
@@ -15,3 +15,4 @@ HEADERS+= metaprocessor.h sessionsmodel.h settings.h spellercontroller.h speller
 HEADERS+= timer.h stimulant.h
 
 LIBS += -L../bin -lemokit
+LIBS += -L../bin -lln-octave

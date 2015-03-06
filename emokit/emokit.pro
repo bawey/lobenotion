@@ -1,5 +1,5 @@
 QT = core
-TARGET = ../bin/emokit
+TARGET = ../lib/emokit
 
 TEMPLATE = lib
 CONFIG+= staticlib

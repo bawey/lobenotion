@@ -1,6 +1,6 @@
 QT       += core gui printsupport network widgets
 
-TARGET = ../bin/lobenotion-gui
+TARGET = ../lib/lobenotion-gui
 TEMPLATE = lib
 CONFIG+= staticlib
 

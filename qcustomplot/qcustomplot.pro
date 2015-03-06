@@ -1,5 +1,5 @@
 QT = core gui widgets printsupport
-TARGET = ../bin/qcustomplot
+TARGET = ../lib/qcustomplot
 CONFIG+= staticlib
 
 TEMPLATE = lib

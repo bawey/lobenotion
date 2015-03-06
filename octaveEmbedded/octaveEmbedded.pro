@@ -1,5 +1,5 @@
 QT = core
-TARGET = ../bin/ln-octave
+TARGET = ../lib/ln-octave
 CONFIG+= staticlib
 
 TEMPLATE = lib
