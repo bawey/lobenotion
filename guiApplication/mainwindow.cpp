@@ -162,6 +162,9 @@ void MainWindow::connectSignalsToSlots(){
     connect(master->getOctaveProxy(), SIGNAL(signalOctaveBusy(bool)), analysisWidget, SLOT(slotOctaveBusy(bool)));
 
     connect(spellerCtl, SIGNAL(signalSessionOngoing(bool)), this, SLOT(slotSessionOngoing(bool)));
+    connect(master, SIGNAL(signalDaqDied()), issueMapper, SLOT(map()));
+    issueMapper->setMapping(master, "DAQ failed");
+    connect(issueMapper, SIGNAL(mapped(QString)), this, SLOT(slotDisplayError(QString)));
 }
 
 void MainWindow::slotDashboard(){

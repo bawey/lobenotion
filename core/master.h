@@ -79,10 +79,12 @@ signals:
     void signalErrorRelay(QString errmsg);
     void signalNewDaq(const EegDaq* daq);
     void signalLaunchDaq();
+    void signalDaqDied();
 public slots:
     void slotErrorRelay(QString errmsg);
     void slotConfigChanged(QString property);
     void start();
+    void slotDaqDied();
 };
 
 #endif // MASTER_H

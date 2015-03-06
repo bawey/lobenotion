@@ -24,6 +24,7 @@ public:
 signals:
     void eegFrame(QSharedPointer<EegFrame> eegFrame);
     void metaFrame(QSharedPointer<MetaFrame> metaFrame);
+    void signalDaqDied();
 
 public slots:
     void slotLaunch();

@@ -26,6 +26,7 @@
 #include <widgets/classifiersmanagerwidget.h>
 #include <widgets/settingswidget.h>
 #include <widgets/analysiswidget.h>
+#include <QSignalMapper>
 
 class MainWindow : public QMainWindow
 {
@@ -58,8 +59,10 @@ private:
     QAction* actAnalyze;
     QAction* actReloadScripts;
 
+
     // OTHER PROGRAM COMPONENTS:
     Master* master;
+    QSignalMapper* issueMapper = new QSignalMapper(this);
     const EegDaq* daq = NULL;
     const SpellerController* spellerCtl;
     const MetaProcessor* metaProcessor;

@@ -88,6 +88,7 @@ void Master::recreateDaq(){
         disconnect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
         disconnect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
         disconnect(this, SIGNAL(signalLaunchDaq()), daq, SLOT(slotLaunch()));
+        disconnect(daq, SIGNAL(signalDaqDied()), this, SLOT(slotDaqDied()));
     }
 
     if(Settings::isDummyModeEnabled()){
@@ -103,6 +104,7 @@ void Master::recreateDaq(){
     connect(daq, SIGNAL(metaFrame(QSharedPointer<MetaFrame>)), metaProcessor, SLOT(metaFrame(QSharedPointer<MetaFrame>)));
     connect(metaProcessor, SIGNAL(signalFine(bool)), spellerController, SLOT(slotSignalFine(bool)));
     connect(this, SIGNAL(signalLaunchDaq()), daq, SLOT(slotLaunch()), Qt::ConnectionType::QueuedConnection);
+    connect(daq, SIGNAL(signalDaqDied()), this, SLOT(slotDaqDied()));
     if(oldDaq != NULL){
         oldDaq->shutdown();
         oldDaq->deleteLater();
@@ -115,6 +117,9 @@ void Master::recreateDaq(){
     }
 }
 
+void Master::slotDaqDied(){
+    emit signalDaqDied();
+}
 
 void Master::start(){
     if(started == false){

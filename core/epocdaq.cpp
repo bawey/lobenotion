@@ -10,7 +10,8 @@ EpocDaq::EpocDaq()
 
 EpocDaq::~EpocDaq(){
     emokit_close(this->epocDev);
-    emokit_delete(this->epocDev);
+    //TODO: this code triggers a SEGFAULT when switching away from dead DAQ
+    //emokit_delete(this->epocDev);
 }
 
 void EpocDaq::run(){
@@ -18,6 +19,7 @@ void EpocDaq::run(){
     if(response != 0)
     {
         qDebug("CANNOT CONNECT: %d\n", response);
+        emit signalDaqDied();
         return;
     }
 
