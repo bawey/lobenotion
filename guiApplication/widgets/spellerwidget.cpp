@@ -7,6 +7,8 @@
 #include <QVBoxLayout>
 #include <QStackedLayout>
 #include <timer.h>
+#include <settings.h>
+#include <QStringList>
 
 SpellerWidget::SpellerWidget()
 {
@@ -26,11 +28,13 @@ SpellerWidget::SpellerWidget()
     keyboardLayout->setContentsMargins(0,0,0,0);
     keyboard->setLayout(keyboardLayout);
 
+    QStringList symbols = Settings::getSpellerCharset().split(' ');
+
     for(int r=0; r<MATRIX_DIM; ++r){
 
         for(int c=0; c<MATRIX_DIM; c++){
             int index = r*MATRIX_DIM+c;
-            QLabel* label = new QLabel(QChar((char)(index<26?65:22)+index));
+            QLabel* label = new QLabel(index < symbols.length() ? symbols.at(index) : " ");
             QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
             label->setAlignment(Qt::AlignCenter|Qt::AlignHCenter);
             label->setSizePolicy(sizePolicy);
