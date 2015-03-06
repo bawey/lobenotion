@@ -1,10 +1,10 @@
 #ifndef CLASSIFIERINFO_H
 #define CLASSIFIERINFO_H
 
-#include <octave/oct.h>
-#include <octave/octave.h>
-#include <octave/parse.h>
-#include <octave/toplev.h>
+#include <oct.h>
+#include <octave.h>
+#include <parse.h>
+#include <toplev.h>
 
 struct ClassifierInfo{
     QString subject;

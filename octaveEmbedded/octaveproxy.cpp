@@ -4,10 +4,10 @@
 #include <QTime>
 #include <QTimer>
 #include <QProcess>
-#include <master.h>
 #include <Cell.h>
 #include <QSharedPointer>
 #include <QThread>
+#include <settings.h>
 
 
 OctaveProxy::OctaveProxy(bool redirectOutput, QObject *parent) :

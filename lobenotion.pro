@@ -1,12 +1,11 @@
-#QT       += core gui printsupport
-#greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+TEMPLATE    = subdirs
+CONFIG      +=ordered
+SUBDIRS     = emokit qcustomplot core octaveEmbedded guiApplication \
+              mainApp
+#SUBDIRS   += test testOctaveEmbedded tests
+
+core.depends = octaveEmbedded emokit
+guiApplication.depends = core qcustomplot
+mainApp.depends = guiApplication
 
 
-#TARGET = lobenotion
-TEMPLATE = subdirs
-SUBDIRS += guiApplication \
-#    testOctaveEmbedded
-#    test \
-
-#this one would crawl the directories looking for the files required
-DEPENDPATH += /usr/share/octave-3.8.1

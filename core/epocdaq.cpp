@@ -1,5 +1,5 @@
 #include "epocdaq.h"
-
+#include <emokit.h>
 
 EpocDaq::EpocDaq()
 {

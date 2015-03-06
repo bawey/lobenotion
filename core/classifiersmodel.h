@@ -3,7 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QList>
-#include <octaveEmbedded/p3sessioninfo.h>
+#include "p3sessioninfo.h"
 #include <QString>
 #include <octave/oct.h>
 #include <octave/octave.h>

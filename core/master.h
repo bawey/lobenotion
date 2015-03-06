@@ -14,7 +14,7 @@
 #include <settings.h>
 #include <sessionsmodel.h>
 #include <classifiersmodel.h>
-#include <octaveEmbedded/octaveproxy.h>
+#include <octaveproxy.h>
 #include <QThread>
 
 /**

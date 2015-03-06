@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "emokit/emokit.h"
+#include "emokit.h"
 #include "hidapi/hidapi.h"
 #include "mcrypt.h"
 

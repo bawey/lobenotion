@@ -8,8 +8,8 @@
 #include <QAction>
 #include <QString>
 #include <QWidget>
-#include <widgets/eegplotwidget.h>
-#include <widgets/spellerwidget.h>
+#include <eegplotwidget.h>
+#include <spellerwidget.h>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QWidget>

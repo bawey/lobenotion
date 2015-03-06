@@ -5,8 +5,6 @@
 #include <QSharedPointer>
 #include <QMutex>
 #include <QWaitCondition>
-#include <QWidget>
-#include <QLabel>
 #include <eegframe.h>
 
 class MetaProcessor : public QObject

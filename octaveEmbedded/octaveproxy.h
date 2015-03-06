@@ -6,20 +6,20 @@
 #include <QStringList>
 #include <QList>
 #include <iostream>
-#include <octave/oct.h>
-#include <octave/octave.h>
-#include <octave/parse.h>
-#include <octave/toplev.h>
-#include <octaveEmbedded/p3sessioninfo.h>
+#include <oct.h>
+#include <octave.h>
+#include <parse.h>
+#include <toplev.h>
+#include <p3sessioninfo.h>
 #include <QDebug>
 #include <QByteArray>
 #include <QThread>
-#include <octaveEmbedded/octaveoutputreader.h>
+#include <octaveoutputreader.h>
 #include <QSharedPointer>
 #include <QVector>
 #include <QPair>
 #include <classifierinfo.h>
-#include <octaveEmbedded/ClassifierOutput.h>
+#include <ClassifierOutput.h>
 #include <QMutex>
 
 #define P3MultiSession "P3SessionLobeShorthand"

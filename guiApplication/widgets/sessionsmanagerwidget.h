@@ -10,7 +10,7 @@
 #include <QButtonGroup>
 #include <QPushButton>
 #include <QList>
-#include <octaveEmbedded/p3sessioninfo.h>
+#include <p3sessioninfo.h>
 #include <QSharedPointer>
 
 class SessionsManagerWidget : public QGroupBox

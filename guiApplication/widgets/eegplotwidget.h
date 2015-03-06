@@ -6,7 +6,7 @@
 #include <eegframe.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <qcustomplot/qcustomplot.h>
+#include <qcustomplot.h>
 
 class EegPlotWidget : public QGroupBox
 {

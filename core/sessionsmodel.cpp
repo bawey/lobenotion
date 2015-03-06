@@ -1,5 +1,5 @@
 #include "sessionsmodel.h"
-#include <octaveEmbedded/octaveproxy.h>
+#include <octaveproxy.h>
 #include <master.h>
 #include <QList>
 #include <QDebug>

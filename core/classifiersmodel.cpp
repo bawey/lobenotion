@@ -1,11 +1,8 @@
 #include "classifiersmodel.h"
 #include <QDebug>
-#include <octaveEmbedded/octaveproxy.h>
-#include <octaveEmbedded/ClassifierOutput.h>
+#include <octaveproxy.h>
+#include <ClassifierOutput.h>
 #include <master.h>
-#include <octave/toplev.h>
-#include <octave/octave.h>
-#include <octave/oct.h>
 #include <QModelIndex>
 #include <classifierinfo.h>
 #include <QtConcurrent/QtConcurrent>

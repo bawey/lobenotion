@@ -1,17 +1,14 @@
-QT       += core gui printsupport network
+QT       += core gui printsupport network widgets
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+TARGET = ../bin/lobenotion-gui
+TEMPLATE = lib
+CONFIG+= staticlib
 
-TARGET = lobenotion
-TEMPLATE = app
+include(../defaults.pri)
 
-#include(../octaveEmbedded.pri)
-include(../common.pri)
-
-SOURCES += main.cpp \
+SOURCES += mainwindow.cpp \
     widgets/eegmetadatawidget.cpp \
     widgets/spellerwidget.cpp \
-    mainwindow.cpp \
     widgets/spellercontrollerwidget.cpp \
     widgets/eegplotwidget.cpp \
     widgets/sessionsmanagerwidget.cpp \
@@ -21,8 +18,8 @@ SOURCES += main.cpp \
     widgets/classifierswidget.cpp \
     widgets/analysiswidget.cpp
 
-HEADERS += \
-    widgets/eegmetadatawidget.h \
+
+HEADERS += widgets/eegmetadatawidget.h \
     widgets/spellerwidget.h \
     mainwindow.h \
     widgets/spellercontrollerwidget.h \
@@ -34,5 +31,5 @@ HEADERS += \
     widgets/classifierswidget.h \
     widgets/analysiswidget.h
 
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
 

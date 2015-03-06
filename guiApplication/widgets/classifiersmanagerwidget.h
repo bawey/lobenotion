@@ -7,7 +7,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QSharedPointer>
-#include <octaveEmbedded/p3sessioninfo.h>
+#include <p3sessioninfo.h>
 #include <classifierinfo.h>
 #include <QList>
 #include "classifiersmodel.h"

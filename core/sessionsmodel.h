@@ -3,7 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QVector>
-#include <octaveEmbedded/p3sessioninfo.h>
+#include <../octaveEmbedded/p3sessioninfo.h>
 #include <QDateTime>
 #include <QSharedPointer>
 

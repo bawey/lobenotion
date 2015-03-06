@@ -1,4 +1,4 @@
-#include "eegplotwidget.h"
+#include <eegplotwidget.h>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QGridLayout>

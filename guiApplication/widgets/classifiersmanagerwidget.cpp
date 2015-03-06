@@ -1,7 +1,7 @@
 #include "classifiersmanagerwidget.h"
 #include <master.h>
 #include <QHeaderView>
-#include <octaveEmbedded/octaveproxy.h>
+#include <octaveproxy.h>
 #include <QtConcurrent/QtConcurrent>
 #include <QModelIndexList>
 #include <QMessageBox>

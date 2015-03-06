@@ -8,7 +8,7 @@
 #include "octaveoutputwidget.h"
 #include "master.h"
 #include "classifierinfo.h"
-#include "octaveEmbedded/p3sessioninfo.h"
+#include "p3sessioninfo.h"
 
 class AnalysisWidget : public QWidget
 {

@@ -1,7 +1,7 @@
 #ifndef EPOCDAQ_H
 #define EPOCDAQ_H
 #include <eegdaq.h>
-#include <emokit/emokit.h>
+#include <emokit.h>
 #include <settings.h>
 
 class EpocDaq : public EegDaq
@@ -13,7 +13,8 @@ public:
 
 private:
     bool isDaemonRunning;
-    struct emokit_device* epocDev;
+//    struct emokit_device* epocDev;
+    emokit_device* epocDev;
 
 
 

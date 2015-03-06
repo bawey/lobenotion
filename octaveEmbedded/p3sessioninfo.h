@@ -2,10 +2,10 @@
 #define P3SESSIONINFO_H
 
 #include <QString>
-#include <octave/oct.h>
-#include <octave/octave.h>
-#include <octave/parse.h>
-#include <octave/toplev.h>
+#include <oct.h>
+#include <octave.h>
+#include <parse.h>
+#include <toplev.h>
 #include <QDateTime>
 
 /**
