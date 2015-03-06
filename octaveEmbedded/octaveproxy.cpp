@@ -257,6 +257,7 @@ void OctaveProxy::slotReloadScripts(){
 
 void OctaveProxy::analyzeConfidence(const ClassifierInfo * model, QSharedPointer<QList<const P3SessionInfo *>> data){
     mutex.lock();
+    qDebug()<<"using: "<<model->parameters;
     emit signalOctaveBusy(true);
     feval("stringify", data->at(0)->getSession());
     octave_value p3data = mergedSession(&(*data));

@@ -298,8 +298,10 @@ void SpellerController::slotCapturedOnlineEpoch(QSharedPointer<QVector<int> > da
 **/
 void SpellerController::slotSymbolRecognized(int row, int col, float confidence){
     qDebug()<<"SpellerController::slotSymbolRecognized " << confidence;
-    if(this->online_epochsElapsed > Settings::getOnlineMinEpochs() &&
-            confidence>Settings::getConfidenceThreshold() && !flagPeriodClassifiedEarly){
+    if(online_epochsElapsed > Settings::getOnlineMinEpochs()
+            && !flagPeriodClassifiedEarly &&
+            ( confidence > Settings::getConfidenceThreshold() ||
+            online_epochsElapsed == Settings::getSpellerEpochsPerStimulus())){
         //TODO might need synchro
         flagPeriodClassifiedEarly = true;
         int symbolNo = this->symbolRowColToNumber(row, col);

@@ -81,6 +81,8 @@ bool ClassifiersManagerWidget::ensureOneSelected(){
         }
         msgBox.exec();
         return false;
+    }else{
+        this->model->slotSetCurrentClassifier(indexList.at(0).row());
     }
     return true;
 }
