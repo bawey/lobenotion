@@ -14,5 +14,5 @@ HEADERS = classifiersmodel.h eegdaq.h eegframe.h epocdaq.h fakedaq.h master.h me
 HEADERS+= metaprocessor.h sessionsmodel.h settings.h spellercontroller.h spellerdumper.h
 HEADERS+= timer.h stimulant.h
 
-LIBS += -L../bin -lemokit
-LIBS += -L../bin -lln-octave
+#LIBS += -L../bin -lemokit
+#LIBS += -L../bin -lln-octave
