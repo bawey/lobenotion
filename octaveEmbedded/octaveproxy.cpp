@@ -125,6 +125,8 @@ ClassifierInfo* OctaveProxy::pickBestModel(QList<const P3SessionInfo *> infos){
                info->getHighlightStint()!=infos.at(0)->getHighlightStint()||
                info->getRepeats()!=infos.at(0)->getRepeats()){
            emit signalOctaveError("Training datasets' parameters mismatch!");
+           mutex.unlock();
+           emit signalOctaveBusy(false);
            return NULL;
        }
     }

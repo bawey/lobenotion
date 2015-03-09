@@ -92,7 +92,13 @@ void SessionsManagerWidget::slotTestPressed(){
 }
 
 void SessionsManagerWidget::slotDropPressed(){
+    QModelIndexList selectedRows = tableView->selectionModel()->selectedRows();
 
+    while(!selectedRows.isEmpty()){
+        QModelIndex index = selectedRows.takeLast();
+        qDebug()<<"Removing session at "<<index.row();
+        tableView->model()->removeRow(index.row());
+    }
 }
 
 void SessionsManagerWidget::slotAdaptButtonsStateToSelection(){
@@ -120,13 +126,14 @@ QSharedPointer<QList<const P3SessionInfo*>> SessionsManagerWidget::selectedSessi
     return sessionInfos;
 }
 
-void SessionsManagerWidget::enableButtons(bool enable){
+void SessionsManagerWidget::adaptButtonsToOctaveState(bool enable){
+    tableView->setEnabled(enable);
     buttonLoad->setEnabled(enable);
     if(enable){
         slotAdaptButtonsStateToSelection();
     }else{
         buttonDrop->setEnabled(false);
         buttonTest->setEnabled(false);
-        buttonTrain->setEnabled(false);
+        buttonTrain->setEnabled(false);                                        
     }
 }

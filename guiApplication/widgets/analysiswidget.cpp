@@ -24,6 +24,6 @@ void AnalysisWidget::slotAnalyzeConfidence() const{
 
 void AnalysisWidget::slotOctaveBusy(bool busy) const{
     qDebug()<<"Received octave busy "<<busy;
-    sessionsManagerWidget()->enableButtons(!busy);
-    classifiersManagerWidget()->enableButtons(!busy);
+    sessionsManagerWidget()->adaptButtonsToOctaveState(!busy);
+    classifiersManagerWidget()->adaptButtonsToOctaveState(!busy);
 }

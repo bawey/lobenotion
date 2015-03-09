@@ -166,3 +166,23 @@ void ClassifiersModel::onlineClasificationJob(QSharedPointer<QVector<int> > data
 void ClassifiersModel::slotAskCurrentClassifier(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg){
     QtConcurrent::run(this, &ClassifiersModel::onlineClasificationJob, data, meta, trg);
 }
+
+bool ClassifiersModel::removeRows(int row, int count, const QModelIndex &parent = QModelIndex()){
+    if(parent!=QModelIndex()){
+        //we don't handle that
+        qDebug()<<"ClassifiersModel: parent is something";
+        return false;
+    }
+    bool deleted = true;
+    beginRemoveRows(QModelIndex(), row, row+count-1);
+    for(; count-- > 0; ++row){
+        if(row > classifiers.size()){
+            deleted = false;
+            break;
+        }
+        ClassifierInfo* info = this->classifiers.takeAt(row);
+        delete info;
+    }
+    endRemoveRows();
+    return deleted;
+}

@@ -6,6 +6,7 @@
 #include <../octaveEmbedded/p3sessioninfo.h>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QDebug>
 
 class SessionsModel : public QAbstractTableModel
 {
@@ -37,7 +38,9 @@ public slots:
 private:
     bool parseSummaryFile(QString path, QString& subject, QString& phrase, QDateTime& created, QString& dimStint,
                           QString& highlightStint, QString& repeats);
+
     QVector<P3SessionInfo*> sessions;
+    virtual bool removeRows(int row, int count, const QModelIndex &parent);
 };
 
 #endif // SESSIONSMODEL_H

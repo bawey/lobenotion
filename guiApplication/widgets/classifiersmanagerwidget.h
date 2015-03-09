@@ -28,7 +28,7 @@ signals:
     void signalAnalyzeConfidence();
 public slots:
     void slotTakeSessionsForTest(QSharedPointer<QList<const P3SessionInfo*>>);
-    void enableButtons(bool enable);
+    void adaptButtonsToOctaveState(bool enable);
 private slots:
     void slotButtonDropPressed();
     void slotButtonOnlinePressed();

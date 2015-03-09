@@ -25,7 +25,7 @@ signals:
     void signalTestModel(QSharedPointer<QList<const P3SessionInfo*>>);
 
 public slots:
-    void enableButtons(bool enable);
+    void adaptButtonsToOctaveState(bool enable);
     void slotLoadPressed();
     void slotTrainPressed();
     void slotTestPressed();
@@ -45,7 +45,6 @@ private:
    QPushButton* buttonDrop;
 
    QTableView* tableView;
-
 
    void connectInternalSignals();
 };

@@ -49,6 +49,7 @@ private:
     int currentClassifier=-1;
     void onlineClasificationJob(QSharedPointer<QVector<int> > data, QSharedPointer<QVector<int> > meta, QSharedPointer<QVector<int> > trg);
     void testModelJob(unsigned short index, QSharedPointer<QList<const P3SessionInfo *> > testSessionInfos);
+    virtual bool removeRows(int row, int count, const QModelIndex &parent);
 };
 
 #endif // CLASSIFIERSMODEL_H

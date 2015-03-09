@@ -11,7 +11,7 @@
 SessionsModel::SessionsModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-
+    qRegisterMetaType<QVector<int>>("QVector<int>");
 }
 
 
@@ -75,6 +75,26 @@ QVariant SessionsModel::headerData(int section, Qt::Orientation orientation, int
         }
     }
     return QVariant();
+}
+
+bool SessionsModel::removeRows(int row, int count, const QModelIndex &parent = QModelIndex()){
+    if(parent!=QModelIndex()){
+        //we don't handle that
+        qDebug()<<"SessionsModel: parent is something";
+        return false;
+    }
+    bool deleted = true;
+    beginRemoveRows(QModelIndex(), row, row+count-1);
+    for(; count-- > 0; ++row){
+        if(row > sessions.size()){
+            deleted = false;
+            break;
+        }
+        P3SessionInfo* info = this->sessions.takeAt(row);
+        delete info;
+    }
+    endRemoveRows();
+    return deleted;
 }
 
 /**

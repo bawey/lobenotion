@@ -53,7 +53,13 @@ void ClassifiersManagerWidget::connectInternalSignals(){
 }
 
 void ClassifiersManagerWidget::slotButtonDropPressed(){
+    QModelIndexList selectedRows = tableView->selectionModel()->selectedRows();
 
+    while(!selectedRows.isEmpty()){
+        QModelIndex index = selectedRows.takeLast();
+        qDebug()<<"Removing classifier at "<<index.row();
+        tableView->model()->removeRow(index.row());
+    }
 }
 
 void ClassifiersManagerWidget::slotAdaptButtonsStateToSelection(){
@@ -105,7 +111,8 @@ ClassifierInfo *ClassifiersManagerWidget::selectedClassifier() const {
     return model->chosenClassifier();
 }
 
-void ClassifiersManagerWidget::enableButtons(bool enable){
+void ClassifiersManagerWidget::adaptButtonsToOctaveState(bool enable){
+    tableView->setEnabled(enable);
     if(enable){
         slotAdaptButtonsStateToSelection();
     }else{
